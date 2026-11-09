@@ -1,0 +1,6 @@
+node_modules/
+.next/
+.env.local
+*.log
+outputs/
+SANTORINI PRECIOS TALLES.xlsx
