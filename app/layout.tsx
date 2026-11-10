@@ -3,6 +3,7 @@ import './styles.css';
 import './brand.css';
 import './instagram.css';
 import './experience.css';
+import './customer.css';
 
 export const metadata: Metadata = {
   title: 'Santorini | Urban essentials',

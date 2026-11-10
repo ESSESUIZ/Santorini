@@ -19,14 +19,13 @@ export default function Login() {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error || !data.user) { setMessage(error?.message ?? 'No fue posible verificar el usuario.'); return; }
       const { data: profile, error: profileError } = await supabase.from('profiles').select('role').eq('id', data.user.id).single();
-      if (profileError || !profile || !['admin', 'sales', 'warehouse'].includes(profile.role)) {
-        await supabase.auth.signOut();
-        setMessage('Tu usuario no tiene un rol operativo autorizado.');
+      if (profileError || !profile || profile.role !== 'admin') {
+        setMessage('Esta cuenta no tiene permisos de administrador.');
         return;
       }
       router.replace('/admin');
       router.refresh();
     } catch { setMessage('No fue posible conectar con Supabase.'); }
   };
-  return <main className="login"><nav><Brand /><span><Link href="/">Volver</Link></span></nav><form className="login-form" onSubmit={submit}><p className="eyebrow">EQUIPO SANTORINI</p><h1>Control<br />de stock.</h1><label>Email<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label><label>Contraseña<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label><button className="button">Ingresar <span>↗</span></button>{message && <p className="login-message">{message}</p>}<p className="login-footnote">Acceso exclusivo para administración, ventas y depósito.</p></form></main>;
+  return <main className="login"><nav><Brand /><span><Link href="/">Volver</Link></span></nav><form className="login-form" onSubmit={submit}><p className="eyebrow">ADMINISTRACIÓN SANTORINI</p><h1>Panel<br />operativo.</h1><label>Email<input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label><label>Contraseña<input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label><button className="button">Ingresar <span>↗</span></button>{message && <p className="login-message" role="status">{message}</p>}<p className="login-footnote">Acceso exclusivo para usuarios con rol administrador.</p></form></main>;
 }

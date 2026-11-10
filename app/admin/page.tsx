@@ -22,7 +22,7 @@ export default function Admin() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { router.replace('/admin/login'); return; }
         const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-        if (!profile || !['admin', 'sales', 'warehouse'].includes(profile.role)) { await supabase.auth.signOut(); router.replace('/admin/login'); return; }
+        if (!profile || profile.role !== 'admin') { router.replace('/'); return; }
         setAuthorized(true);
         const { data: locations } = await supabase.from('inventory_locations').select('id').eq('active', true).limit(1);
         let { data: variants, error } = await supabase.from('product_variants').select('id, sku, color, size, price_ars, price_usd, products(name, category)');
