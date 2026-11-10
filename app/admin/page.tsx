@@ -14,6 +14,7 @@ export default function Admin() {
   const [locationId, setLocationId] = useState<string | null>(null);
   const [authorized, setAuthorized] = useState(false);
   const router = useRouter();
+  const filtered = useMemo(() => products.filter((item) => `${item.name} ${item.color} ${item.id}`.toLowerCase().includes(query.toLowerCase())), [products, query]);
   useEffect(() => {
     const load = async () => {
       try {
@@ -39,7 +40,6 @@ export default function Admin() {
     load();
   }, []);
   if (!authorized) return <main className="admin-loading">Verificando acceso operativo…</main>;
-  const filtered = useMemo(() => products.filter((item) => `${item.name} ${item.color} ${item.id}`.toLowerCase().includes(query.toLowerCase())), [products, query]);
   const setStock = async (id: string, change: number) => {
     const product = products.find((item) => item.id === id);
     if (!product) return;
