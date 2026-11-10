@@ -4,9 +4,11 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { createClient } from '../lib/supabase/browser';
 import { Brand } from './Brand';
+import { useCart } from './CartProvider';
 
-export function SiteNav({ bagCount }: { bagCount?: number }) {
+export function SiteNav() {
   const [account, setAccount] = useState<'loading' | 'guest' | 'customer' | 'admin'>('loading');
+  const { count } = useCart();
 
   useEffect(() => {
     const supabase = createClient();
@@ -28,7 +30,7 @@ export function SiteNav({ bagCount }: { bagCount?: number }) {
       {account === 'admin' && <Link href="/admin">Operación</Link>}
       {account === 'guest' && <Link href="/cuenta">Iniciar sesión</Link>}
       {(account === 'customer' || account === 'admin') && <Link href="/cuenta">Mi cuenta</Link>}
-      {bagCount !== undefined && <strong>Bolsa {bagCount}</strong>}
+      <Link className="bag-link" href="/checkout">Bolsa {count}</Link>
     </span>
   </nav>;
 }

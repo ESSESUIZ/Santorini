@@ -3,6 +3,17 @@ import { createClient } from './supabase/server';
 
 type CatalogRow = { variant_id: string; sku: string; name: string; category: string; color: string; size: string; price_ars: number; available_stock: number };
 
+export type ProductDetail = {
+  productId?: string;
+  name: string;
+  category: string;
+  brand: string;
+  description: string;
+  color: string;
+  images: string[];
+  variants: Product[];
+};
+
 export async function getPublicCatalog(): Promise<Product[]> {
   try {
     const supabase = await createClient();
@@ -10,4 +21,38 @@ export async function getPublicCatalog(): Promise<Product[]> {
     if (error || !data?.length) return initialProducts;
     return (data as CatalogRow[]).map((item) => ({ id: item.sku, variantId: item.variant_id, name: item.name, category: item.category, color: item.color, size: item.size, price: Number(item.price_ars), stock: item.available_stock }));
   } catch { return initialProducts; }
+}
+
+export async function getProductBySku(sku: string): Promise<ProductDetail | null> {
+  try {
+    const supabase = await createClient();
+    const { data: selected, error } = await supabase.from('product_variants')
+      .select('product_id, sku, color, size, price_ars, products!inner(name, category, brand, description)')
+      .eq('sku', sku).single();
+    if (error || !selected) throw error;
+    const product = Array.isArray(selected.products) ? selected.products[0] : selected.products;
+    const { data: variants } = await supabase.from('product_variants')
+      .select('id, sku, color, size, price_ars')
+      .eq('product_id', selected.product_id).eq('color', selected.color).order('size');
+    const { data: publicCatalog } = await supabase.rpc('get_public_catalog');
+    const stock = new Map<string, number>((publicCatalog ?? []).map((row: CatalogRow) => [row.variant_id, row.available_stock]));
+    const variantIds = (variants ?? []).map((variant) => variant.id);
+    const imageQuery = supabase.from('product_images').select('storage_path').eq('product_id', selected.product_id).order('sort_order');
+    const { data: imageRows } = variantIds.length ? await imageQuery.or(`variant_id.is.null,variant_id.in.(${variantIds.join(',')})`) : await imageQuery.is('variant_id', null);
+    const images = (imageRows ?? []).map((row) => supabase.storage.from('product-images').getPublicUrl(row.storage_path).data.publicUrl);
+    return {
+      productId: selected.product_id,
+      name: product?.name ?? sku,
+      category: product?.category ?? 'Otros',
+      brand: product?.brand ?? 'Santorini Selection',
+      description: product?.description ?? 'Una pieza seleccionada por Santorini por su diseño, materialidad y presencia urbana.',
+      color: selected.color,
+      images,
+      variants: (variants ?? []).map((variant) => ({ id: variant.sku, variantId: variant.id, name: product?.name ?? sku, category: product?.category ?? 'Otros', color: variant.color, size: variant.size, price: Number(variant.price_ars), stock: stock.get(variant.id) ?? 0 })),
+    };
+  } catch {
+    const selected = initialProducts.find((item) => item.id === sku);
+    if (!selected) return null;
+    return { name: selected.name, category: selected.category, brand: 'Santorini Selection', description: 'Una pieza seleccionada por Santorini por su diseño, materialidad y presencia urbana.', color: selected.color, images: [], variants: initialProducts.filter((item) => item.name === selected.name && item.color === selected.color) };
+  }
 }

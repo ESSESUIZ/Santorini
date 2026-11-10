@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
 import { Brand } from '../../components/Brand';
+import { AccountDashboard } from '../../components/AccountDashboard';
 import { createClient } from '../../lib/supabase/browser';
 
 export default function AccountPage() {
@@ -10,12 +11,12 @@ export default function AccountPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [currentEmail, setCurrentEmail] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: string; email: string } | null>(null);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    createClient().auth.getUser().then(({ data }) => setCurrentEmail(data.user?.email ?? null));
+    createClient().auth.getUser().then(({ data }) => setCurrentUser(data.user ? { id: data.user.id, email: data.user.email ?? '' } : null));
   }, []);
 
   const submit = async (event: FormEvent) => {
@@ -26,7 +27,7 @@ export default function AccountPage() {
     if (mode === 'login') {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error || !data.user) setMessage(error?.message ?? 'No pudimos iniciar sesión.');
-      else { setCurrentEmail(data.user.email ?? email); setMessage('Sesión iniciada correctamente.'); }
+      else { setCurrentUser({ id: data.user.id, email: data.user.email ?? email }); setMessage('Sesión iniciada correctamente.'); }
     } else {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -34,7 +35,7 @@ export default function AccountPage() {
         options: { data: { full_name: name }, emailRedirectTo: `${window.location.origin}/cuenta` },
       });
       if (error) setMessage(error.message);
-      else if (data.session) { setCurrentEmail(data.user?.email ?? email); setMessage('Tu cuenta ya está activa.'); }
+      else if (data.session && data.user) { setCurrentUser({ id: data.user.id, email: data.user.email ?? email }); setMessage('Tu cuenta ya está activa.'); }
       else setMessage('Te enviamos un email para confirmar tu cuenta.');
     }
     setBusy(false);
@@ -42,7 +43,7 @@ export default function AccountPage() {
 
   const signOut = async () => {
     await createClient().auth.signOut();
-    setCurrentEmail(null);
+    setCurrentUser(null);
     setMessage('Cerraste sesión. Podés seguir recorriendo la tienda.');
   };
 
@@ -52,11 +53,7 @@ export default function AccountPage() {
       <div className="account-visual" aria-hidden="true"><img src="/santorini-island-hero.png" alt="" /></div>
       <div className="account-panel">
         <p className="eyebrow">CUENTA SANTORINI</p>
-        {currentEmail ? <>
-          <h1>Qué bueno<br />verte.</h1>
-          <p className="account-copy">Ingresaste como <strong>{currentEmail}</strong>. Tu cuenta guardará tus datos e historial cuando habilitemos el checkout.</p>
-          <div className="account-actions"><Link className="button" href="/tienda">Ir a la tienda <span>↗</span></Link><button className="text-button" onClick={signOut}>Cerrar sesión</button></div>
-        </> : <>
+        {currentUser ? <AccountDashboard userId={currentUser.id} email={currentUser.email} onSignOut={signOut} /> : <>
           <div className="account-tabs" role="tablist" aria-label="Acceso a cuenta">
             <button role="tab" aria-selected={mode === 'login'} onClick={() => { setMode('login'); setMessage(''); }}>Iniciar sesión</button>
             <button role="tab" aria-selected={mode === 'register'} onClick={() => { setMode('register'); setMessage(''); }}>Crear cuenta</button>
@@ -68,6 +65,7 @@ export default function AccountPage() {
             <label>Contraseña<input type="password" minLength={8} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} value={password} onChange={(event) => setPassword(event.target.value)} required /></label>
             <button className="button" disabled={busy}>{busy ? 'Procesando…' : mode === 'login' ? 'Ingresar' : 'Crear mi cuenta'} <span>↗</span></button>
           </form>
+          {mode === 'login' && <button className="forgot-link" type="button" onClick={async () => { if (!email) { setMessage('Ingresá tu email para recuperar la contraseña.'); return; } setBusy(true); const { error } = await createClient().auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/cuenta/restablecer` }); setMessage(error ? error.message : 'Te enviamos un enlace para crear una nueva contraseña.'); setBusy(false); }}>Olvidé mi contraseña</button>}
           <p className="account-note">No necesitás una cuenta para recorrer la tienda.</p>
         </>}
         {message && <p className="account-message" role="status">{message}</p>}
