@@ -5,6 +5,7 @@ import './instagram.css';
 import './experience.css';
 import './customer.css';
 import './product.css';
+import './checkout.css';
 import { CartProvider } from '../components/CartProvider';
 
 export const metadata: Metadata = {
