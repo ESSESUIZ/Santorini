@@ -38,6 +38,9 @@ export default function Admin() {
   const [editor, setEditor] = useState<EditorValues | null>(null);
   const [editing, setEditing] = useState<Product | null>(null);
   const [saving, setSaving] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [draggingImage, setDraggingImage] = useState(false);
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const router = useRouter();
 
@@ -97,10 +100,31 @@ export default function Admin() {
     setNotice({ type: 'success', text: `Stock de ${id} actualizado.` });
   };
 
-  const openCreate = () => { setEditing(null); setEditor(blankEditor); setNotice(null); };
-  const openEdit = (product: Product) => { setEditing(product); setEditor(valuesFromProduct(product)); setNotice(null); };
-  const closeEditor = () => { if (!saving) { setEditor(null); setEditing(null); } };
+  const openCreate = () => { setEditing(null); setEditor(blankEditor); setImageFile(null); setImagePreview(null); setDraggingImage(false); setNotice(null); };
+  const openEdit = (product: Product) => { setEditing(product); setEditor(valuesFromProduct(product)); setImageFile(null); setImagePreview(null); setNotice(null); };
+  const closeEditor = () => { if (!saving) { setEditor(null); setEditing(null); setImageFile(null); setImagePreview(null); setDraggingImage(false); } };
   const change = (field: keyof EditorValues, value: string) => setEditor((current) => current ? { ...current, [field]: value } : current);
+
+  const selectImage = (file: File | undefined) => {
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { setNotice({ type: 'error', text: 'La imagen debe ser JPG, PNG o WebP.' }); return; }
+    if (file.size > 5 * 1024 * 1024) { setNotice({ type: 'error', text: 'La imagen no puede superar los 5 MB.' }); return; }
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImageFile(file); setImagePreview(URL.createObjectURL(file)); setNotice(null);
+  };
+
+  const uploadProductImage = async (file: File, productId: string, variantId: string, sku: string) => {
+    const supabase = createClient();
+    const extension = file.name.split('.').pop()?.toLowerCase() || 'webp';
+    const safeSku = sku.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+    const storagePath = `catalog/${productId}/${variantId}/${Date.now()}-${safeSku}.${extension}`;
+    const { error: uploadError } = await supabase.storage.from('product-images').upload(storagePath, file, { contentType: file.type, upsert: false });
+    if (uploadError) return uploadError.message;
+    const { data: lastImage } = await supabase.from('product_images').select('sort_order').eq('variant_id', variantId).order('sort_order', { ascending: false }).limit(1).maybeSingle();
+    const { error: recordError } = await supabase.from('product_images').insert({ product_id: productId, variant_id: variantId, storage_path: storagePath, alt_text: `${editor?.name ?? sku} · ${editor?.color ?? ''}`.trim(), sort_order: (lastImage?.sort_order ?? -1) + 1 });
+    if (recordError) { await supabase.storage.from('product-images').remove([storagePath]); return recordError.message; }
+    return null;
+  };
 
   const saveProduct = async (event: FormEvent) => {
     event.preventDefault();
@@ -112,10 +136,15 @@ export default function Admin() {
     const result = editing
       ? await supabase.rpc('update_catalog_product', { p_product_id: editing.productId, p_variant_id: editing.variantId, p_product: productPayload, p_variant: variantPayload })
       : await supabase.rpc('create_catalog_product', { p_product: productPayload, p_variant: variantPayload, p_initial_stock: Number(editor.initialStock || 0), p_location_id: locationId });
+    if (result.error) { setSaving(false); setNotice({ type: 'error', text: result.error.message.includes('Could not find') ? 'Falta aplicar la migración 010 en Supabase.' : result.error.message }); return; }
+    const created = result.data as { product_id?: string; variant_id?: string } | null;
+    const productId = editing?.productId ?? created?.product_id;
+    const variantId = editing?.variantId ?? created?.variant_id;
+    const imageError = imageFile && productId && variantId ? await uploadProductImage(imageFile, productId, variantId, editor.sku) : null;
     setSaving(false);
-    if (result.error) { setNotice({ type: 'error', text: result.error.message.includes('Could not find') ? 'Falta aplicar la migración 010 en Supabase.' : result.error.message }); return; }
-    await loadCatalog(); setEditor(null); setEditing(null);
-    setNotice({ type: 'success', text: editing ? 'Producto actualizado correctamente.' : 'Producto creado correctamente.' });
+    if (imageError) { setNotice({ type: 'error', text: `El producto fue guardado, pero no pudimos subir la imagen: ${imageError}` }); await loadCatalog(); return; }
+    await loadCatalog(); setEditor(null); setEditing(null); setImageFile(null); setImagePreview(null);
+    setNotice({ type: 'success', text: `${editing ? 'Producto actualizado' : 'Producto creado'}${imageFile ? ' e imagen cargada' : ''} correctamente.` });
   };
 
   const archiveProduct = async (product: Product) => {
@@ -138,6 +167,7 @@ export default function Admin() {
       <form onSubmit={saveProduct}>
         <fieldset><legend>Información del producto</legend><div className="editor-grid"><label className="span-2">Nombre<input required value={editor.name} onChange={(e) => change('name', e.target.value)} /></label><label>Categoría<input required value={editor.category} onChange={(e) => change('category', e.target.value)} /></label><label>Marca<input value={editor.brand} onChange={(e) => change('brand', e.target.value)} /></label><label className="span-2">Descripción<textarea rows={4} value={editor.description} onChange={(e) => change('description', e.target.value)} /></label><label>Estado operativo<select value={editor.status} onChange={(e) => change('status', e.target.value)}><option value="active">Activo</option><option value="archived">Baja</option></select></label><label>Estado web<select value={editor.webStatus} onChange={(e) => change('webStatus', e.target.value)}><option value="draft">Borrador</option><option value="published">Publicado</option></select></label></div></fieldset>
         <fieldset><legend>Variante y precio</legend><div className="editor-grid"><label>SKU<input required pattern="SAN-[0-9]{4}" placeholder="SAN-0059" value={editor.sku} onChange={(e) => change('sku', e.target.value.toUpperCase())} /></label><label>Color<input required value={editor.color} onChange={(e) => change('color', e.target.value)} /></label><label>Talle<input required value={editor.size} onChange={(e) => change('size', e.target.value)} /></label><label>Precio ARS<input required min="0" step="0.01" type="number" value={editor.priceArs} onChange={(e) => change('priceArs', e.target.value)} /></label><label>Precio USD<input min="0" step="0.01" type="number" value={editor.priceUsd} onChange={(e) => change('priceUsd', e.target.value)} /></label><label>Costo USD<input min="0" step="0.01" type="number" value={editor.costUsd} onChange={(e) => change('costUsd', e.target.value)} /></label>{!editing && <label>Stock inicial<input min="0" step="1" type="number" value={editor.initialStock} onChange={(e) => change('initialStock', e.target.value)} /></label>}</div></fieldset>
+        <fieldset><legend>Imagen del producto</legend><label className={`image-dropzone${draggingImage ? ' dragging' : ''}`} onDragEnter={() => setDraggingImage(true)} onDragOver={(event) => { event.preventDefault(); setDraggingImage(true); }} onDragLeave={() => setDraggingImage(false)} onDrop={(event) => { event.preventDefault(); setDraggingImage(false); selectImage(event.dataTransfer.files[0]); }}><input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => selectImage(event.target.files?.[0])} />{imagePreview ? <><img src={imagePreview} alt="Vista previa de la imagen seleccionada" width="240" height="300" /><span><strong>{imageFile?.name}</strong><small>Hacé clic o arrastrá otra imagen para reemplazarla.</small></span></> : <><span className="image-drop-icon" aria-hidden="true">↥</span><span><strong>Arrastrá una imagen o hacé clic para seleccionarla</strong><small>JPG, PNG o WebP · hasta 5 MB · se asociará a esta variante.</small></span></>}</label></fieldset>
         <fieldset><legend>Datos para envío</legend><div className="editor-grid shipping-grid"><label>Peso (g)<input required min="1" type="number" value={editor.shippingWeightG} onChange={(e) => change('shippingWeightG', e.target.value)} /></label><label>Largo (cm)<input required min="1" step="0.1" type="number" value={editor.shippingLengthCm} onChange={(e) => change('shippingLengthCm', e.target.value)} /></label><label>Ancho (cm)<input required min="1" step="0.1" type="number" value={editor.shippingWidthCm} onChange={(e) => change('shippingWidthCm', e.target.value)} /></label><label>Alto (cm)<input required min="1" step="0.1" type="number" value={editor.shippingHeightCm} onChange={(e) => change('shippingHeightCm', e.target.value)} /></label></div></fieldset>
         <div className="editor-footer"><button type="button" className="secondary-button" onClick={closeEditor}>Cancelar</button><button className="button" disabled={saving}>{saving ? 'Guardando…' : editing ? 'Guardar cambios' : 'Crear producto'} <span>→</span></button></div>
       </form>
