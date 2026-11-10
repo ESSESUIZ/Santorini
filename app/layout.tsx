@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './styles.css';
 import './brand.css';
+import './instagram.css';
 
 export const metadata: Metadata = {
   title: 'Santorini | Urban essentials',

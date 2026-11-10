@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { initialProducts, money } from '../../lib/catalog';
 import { Brand } from '../../components/Brand';
 import { createClient } from '../../lib/supabase/browser';
@@ -11,10 +12,17 @@ export default function Admin() {
   const [query, setQuery] = useState('');
   const [mode, setMode] = useState<'demo' | 'live'>('demo');
   const [locationId, setLocationId] = useState<string | null>(null);
+  const [authorized, setAuthorized] = useState(false);
+  const router = useRouter();
   useEffect(() => {
     const load = async () => {
       try {
         const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { router.replace('/admin/login'); return; }
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+        if (!profile || !['admin', 'sales', 'warehouse'].includes(profile.role)) { await supabase.auth.signOut(); router.replace('/admin/login'); return; }
+        setAuthorized(true);
         const { data: locations } = await supabase.from('inventory_locations').select('id').eq('active', true).limit(1);
         const { data: variants, error } = await supabase.from('product_variants').select('id, sku, color, size, price_ars, products(name, category)');
         const { data: movements } = await supabase.from('inventory_movements').select('variant_id, quantity');
@@ -26,10 +34,11 @@ export default function Admin() {
           return { id: row.sku, variantId: row.id, name: product?.name ?? row.sku, category: product?.category ?? 'Otros', color: row.color, size: row.size, price: Number(row.price_ars), stock: stock.get(row.id) ?? 0 };
         }));
         setLocationId(locations[0].id); setMode('live');
-      } catch { /* Credentials absent or user is not a staff member. */ }
+      } catch { router.replace('/admin/login'); }
     };
     load();
   }, []);
+  if (!authorized) return <main className="admin-loading">Verificando acceso operativo…</main>;
   const filtered = useMemo(() => products.filter((item) => `${item.name} ${item.color} ${item.id}`.toLowerCase().includes(query.toLowerCase())), [products, query]);
   const setStock = async (id: string, change: number) => {
     const product = products.find((item) => item.id === id);
