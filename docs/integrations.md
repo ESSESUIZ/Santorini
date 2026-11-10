@@ -33,8 +33,11 @@ Variables requeridas:
 ```text
 MERCADO_PAGO_ACCESS_TOKEN=<Access Token del ambiente elegido>
 MERCADO_PAGO_WEBHOOK_SECRET=<firma secreta del webhook>
+MERCADO_PAGO_ENVIRONMENT=test
 NEXT_PUBLIC_SITE_URL=https://<dominio-vercel>
 ```
+
+Con `MERCADO_PAGO_ENVIRONMENT=test` la aplicación usa la URL sandbox devuelta por Mercado Pago. Para cobrar pagos reales, cambiarla a `production`, reemplazar las credenciales por las productivas y volver a desplegar.
 
 Documentación oficial: <https://www.mercadopago.com.ar/developers/es/docs/getting-started>
 

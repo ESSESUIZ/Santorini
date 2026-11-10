@@ -93,7 +93,10 @@ export async function POST(request: Request) {
       throw new Error(`Mercado Pago rechazó la preferencia (${preferenceResponse.status}).`);
     }
     const preference = await preferenceResponse.json() as { id: string; init_point?: string; sandbox_init_point?: string };
-    const checkoutUrl = preference.init_point ?? preference.sandbox_init_point;
+    const paymentEnvironment = process.env.MERCADO_PAGO_ENVIRONMENT === 'test' ? 'test' : 'production';
+    const checkoutUrl = paymentEnvironment === 'test'
+      ? preference.sandbox_init_point ?? preference.init_point
+      : preference.init_point;
     if (!checkoutUrl) throw new Error('Mercado Pago no devolvió una URL de pago.');
     const { error: updateError } = await admin.from('orders').update({ payment_preference_id: preference.id }).eq('id', orderId);
     if (updateError) throw updateError;
