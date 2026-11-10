@@ -15,6 +15,7 @@ type CheckoutBody = {
   };
   items?: { variantId: string; quantity: number }[];
   shippingRateId?: string;
+  paymentMethod?: 'mercado_pago' | 'bank_transfer';
 };
 
 type CreatedOrder = { order_id: string; order_number: string; total_ars: number };
@@ -24,17 +25,24 @@ export async function POST(request: Request) {
   const admin = createAdminClient();
 
   try {
-    const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
-    if (!accessToken || accessToken.trim().length < 20 || /^(x+|\.{3}|todo|pendiente)$/i.test(accessToken.trim())) {
-      return NextResponse.json({ code: 'PAYMENT_NOT_CONFIGURED', message: 'Mercado Pago todavía no está configurado. Agregá el Access Token en Vercel y volvé a desplegar.' }, { status: 503 });
-    }
-
     const body = await request.json() as CheckoutBody;
     const customer = body.customer;
     const items = Array.isArray(body.items) ? body.items : [];
+    const paymentMethod = body.paymentMethod === 'bank_transfer' ? 'bank_transfer' : 'mercado_pago';
     const postalCode = customer?.address?.postal_code?.trim() ?? '';
     if (!customer?.name || !customer.email || !customer.phone || !customer.address?.street || !customer.address.number || !customer.address.city || !customer.address.province || !postalCode || !items.length || !body.shippingRateId) {
       return NextResponse.json({ message: 'Completá los datos, el carrito y una opción de envío.' }, { status: 400 });
+    }
+
+    const transferAlias = process.env.BANK_TRANSFER_ALIAS?.trim();
+    const transferWhatsapp = process.env.BANK_TRANSFER_WHATSAPP?.replace(/\D/g, '');
+    if (paymentMethod === 'bank_transfer' && (!transferAlias || !transferWhatsapp || transferWhatsapp.length < 10)) {
+      return NextResponse.json({ code: 'TRANSFER_NOT_CONFIGURED', message: 'La transferencia todavía no está configurada. Contactanos por Instagram para completar la compra.' }, { status: 503 });
+    }
+
+    const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
+    if (paymentMethod === 'mercado_pago' && (!accessToken || accessToken.trim().length < 20 || /^(x+|\.{3}|todo|pendiente)$/i.test(accessToken.trim()))) {
+      return NextResponse.json({ code: 'PAYMENT_NOT_CONFIGURED', message: 'Mercado Pago todavía no está configurado. Agregá el Access Token en Vercel y volvé a desplegar.' }, { status: 503 });
     }
 
     const dimensions = await getPackageForItems(items);
@@ -49,10 +57,26 @@ export async function POST(request: Request) {
       p_items: items.map((item) => ({ variant_id: item.variantId, quantity: item.quantity })),
       p_shipping: { service: selectedRate.name, cost: selectedRate.price, postal_code: postalCode },
       p_customer_id: user?.id ?? null,
+      p_payment_provider: paymentMethod,
     });
     if (orderError) throw orderError;
     const created = order as CreatedOrder;
     orderId = created.order_id;
+
+    if (paymentMethod === 'bank_transfer') {
+      const amount = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(Number(created.total_ars));
+      const whatsappMessage = `Hola, quiero enviar el comprobante de transferencia del pedido ${created.order_number}. Total: ${amount}.`;
+      return NextResponse.json({
+        paymentMethod,
+        orderNumber: created.order_number,
+        total: created.total_ars,
+        transfer: {
+          alias: transferAlias,
+          accountHolder: process.env.BANK_TRANSFER_ACCOUNT_HOLDER?.trim() ?? '',
+          whatsappUrl: `https://wa.me/${transferWhatsapp}?text=${encodeURIComponent(whatsappMessage)}`,
+        },
+      });
+    }
 
     const { data: orderItems, error: itemError } = await admin
       .from('order_items')
@@ -101,7 +125,7 @@ export async function POST(request: Request) {
     const { error: updateError } = await admin.from('orders').update({ payment_preference_id: preference.id }).eq('id', orderId);
     if (updateError) throw updateError;
 
-    return NextResponse.json({ checkoutUrl, orderNumber: created.order_number });
+    return NextResponse.json({ checkoutUrl, orderNumber: created.order_number, paymentMethod });
   } catch (error) {
     if (orderId) await admin.rpc('release_checkout_order', { p_order_id: orderId });
     if (error instanceof ShippingIntegrationError) {

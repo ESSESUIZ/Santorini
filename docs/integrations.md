@@ -41,6 +41,25 @@ Con `MERCADO_PAGO_ENVIRONMENT=test` la aplicación usa la URL sandbox devuelta p
 
 Documentación oficial: <https://www.mercadopago.com.ar/developers/es/docs/getting-started>
 
+## Transferencia bancaria
+
+El checkout puede ofrecer transferencia además de Mercado Pago. Al elegirla se crea una reserva de stock de dos horas, se muestra el alias y se abre un mensaje de WhatsApp con el número de pedido para adjuntar el comprobante. El equipo confirma el pago manualmente antes de preparar el envío.
+
+Variables privadas requeridas:
+
+```text
+BANK_TRANSFER_ALIAS=<alias bancario o CVU>
+BANK_TRANSFER_WHATSAPP=<código de país + número de WhatsApp, solo dígitos>
+```
+
+Opcional para mostrar el titular junto al alias:
+
+```text
+BANK_TRANSFER_ACCOUNT_HOLDER=<titular de la cuenta>
+```
+
+Después de agregarlas en Vercel, crear un nuevo deployment. No usar el prefijo `NEXT_PUBLIC_`: estos datos se entregan recién después de reservar un pedido por transferencia.
+
 ## Vercel
 
 En **Project → Settings → Environment Variables**, agregar todas las variables para el ambiente correspondiente. Después de cambiar cualquier valor hay que crear un nuevo deployment: los deployments existentes no reciben cambios retroactivos.
