@@ -19,7 +19,13 @@ export async function getPublicCatalog(): Promise<Product[]> {
     const supabase = await createClient();
     const { data, error } = await supabase.rpc('get_public_catalog');
     if (error || !data?.length) return initialProducts;
-    return (data as CatalogRow[]).map((item) => ({ id: item.sku, variantId: item.variant_id, name: item.name, category: item.category, color: item.color, size: item.size, price: Number(item.price_ars), stock: item.available_stock }));
+    const rows = data as CatalogRow[];
+    const { data: images } = await supabase.from('product_images').select('variant_id, storage_path').in('variant_id', rows.map((item) => item.variant_id)).order('sort_order');
+    const imageByVariant = new Map<string, string>();
+    images?.forEach((image) => {
+      if (image.variant_id && !imageByVariant.has(image.variant_id)) imageByVariant.set(image.variant_id, supabase.storage.from('product-images').getPublicUrl(image.storage_path).data.publicUrl);
+    });
+    return rows.map((item) => ({ id: item.sku, variantId: item.variant_id, name: item.name, category: item.category, color: item.color, size: item.size, price: Number(item.price_ars), stock: item.available_stock, imageUrl: imageByVariant.get(item.variant_id) }));
   } catch { return initialProducts; }
 }
 

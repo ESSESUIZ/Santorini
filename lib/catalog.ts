@@ -1,13 +1,24 @@
 export type Product = {
   id: string;
+  productId?: string;
   variantId?: string;
   name: string;
   category: string;
+  brand?: string;
+  description?: string;
   color: string;
   size: string;
   price: number;
   priceUsd?: number;
+  costUsd?: number;
   stock: number;
+  status?: 'active' | 'archived';
+  webStatus?: 'draft' | 'published';
+  shippingWeightG?: number;
+  shippingLengthCm?: number;
+  shippingWidthCm?: number;
+  shippingHeightCm?: number;
+  imageUrl?: string;
 };
 
 export const initialProducts: Product[] = [

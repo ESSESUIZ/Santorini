@@ -6,6 +6,7 @@ import './experience.css';
 import './customer.css';
 import './product.css';
 import './checkout.css';
+import './polish.css';
 import { CartProvider } from '../components/CartProvider';
 
 export const metadata: Metadata = {
