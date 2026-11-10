@@ -43,3 +43,14 @@ Documentación oficial: <https://www.mercadopago.com.ar/developers/es/docs/getti
 En **Project → Settings → Environment Variables**, agregar todas las variables para el ambiente correspondiente. Después de cambiar cualquier valor hay que crear un nuevo deployment: los deployments existentes no reciben cambios retroactivos.
 
 No mezclar credenciales de prueba y producción en un mismo deployment.
+
+## Probar Mercado Pago sin Correo Argentino
+
+Mientras MiCorreo esté pendiente, el checkout puede usar una tarifa fija configurada únicamente desde el servidor:
+
+```text
+SHIPPING_MODE=flat
+FLAT_SHIPPING_RATE_ARS=5000
+```
+
+El valor es un ejemplo y debe definirse para la prueba. Tanto la cotización mostrada al cliente como la validación previa al pago usan el mismo valor del servidor. Cuando Correo Argentino esté listo, cambiar `SHIPPING_MODE` a `correo` o eliminar la variable y volver a desplegar.

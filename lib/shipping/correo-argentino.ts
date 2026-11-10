@@ -88,6 +88,20 @@ function stringFrom(rate: RawRate, keys: string[]) {
 }
 
 export async function quoteCorreoArgentino(destinationPostalCode: string, dimensions: PackageDimensions, deliveryType: 'D' | 'S' = 'D') {
+  if (process.env.SHIPPING_MODE === 'flat') {
+    const price = Number(process.env.FLAT_SHIPPING_RATE_ARS);
+    if (!Number.isFinite(price) || price < 0) {
+      throw new ShippingIntegrationError('SHIPPING_NOT_CONFIGURED', 'Configurá FLAT_SHIPPING_RATE_ARS con una tarifa provisoria válida.');
+    }
+    return [{
+      id: `flat-${deliveryType}`,
+      name: 'Envío a domicilio',
+      deliveryType,
+      price,
+      estimatedDays: 'Tarifa provisoria para pruebas',
+    } satisfies ShippingRate];
+  }
+
   const config = configuration();
   const postalCode = normalizePostalCode(destinationPostalCode);
   if (postalCode.length < 4) throw new ShippingIntegrationError('SHIPPING_PROVIDER_ERROR', 'Ingresá un código postal válido.');
