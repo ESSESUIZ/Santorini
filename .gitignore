@@ -6,4 +6,5 @@ outputs/
 test-results/
 playwright-report/
 *.tsbuildinfo
+.taste-skill/
 SANTORINI PRECIOS TALLES.xlsx

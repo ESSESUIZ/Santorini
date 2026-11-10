@@ -25,7 +25,9 @@ export async function POST(request: Request) {
 
   try {
     const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
-    if (!accessToken) return NextResponse.json({ code: 'PAYMENT_NOT_CONFIGURED', message: 'Falta configurar Mercado Pago.' }, { status: 503 });
+    if (!accessToken || accessToken.trim().length < 20 || /^(x+|\.{3}|todo|pendiente)$/i.test(accessToken.trim())) {
+      return NextResponse.json({ code: 'PAYMENT_NOT_CONFIGURED', message: 'Mercado Pago todavía no está configurado. Agregá el Access Token en Vercel y volvé a desplegar.' }, { status: 503 });
+    }
 
     const body = await request.json() as CheckoutBody;
     const customer = body.customer;

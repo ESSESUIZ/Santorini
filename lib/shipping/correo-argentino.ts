@@ -16,7 +16,7 @@ export type ShippingRate = {
 };
 
 export class ShippingIntegrationError extends Error {
-  constructor(public code: 'SHIPPING_NOT_CONFIGURED' | 'SHIPPING_PROVIDER_ERROR', message: string) {
+  constructor(public code: 'SHIPPING_NOT_CONFIGURED' | 'SHIPPING_AUTH_ERROR' | 'SHIPPING_PROVIDER_ERROR', message: string) {
     super(message);
   }
 }
@@ -35,11 +35,12 @@ function configuration() {
   const originPostalCode = process.env.CORREO_ARGENTINO_ORIGIN_POSTAL_CODE;
   const environment = process.env.CORREO_ARGENTINO_ENVIRONMENT === 'production' ? 'production' : 'test';
 
-  if (!user || !password || !customerId || !originPostalCode) {
-    throw new ShippingIntegrationError('SHIPPING_NOT_CONFIGURED', 'Faltan las credenciales de MiCorreo o el código postal de origen.');
+  const looksConfigured = (value: string | undefined, minimumLength: number) => Boolean(value && value.trim().length >= minimumLength && !/^(x+|\.{3}|todo|pendiente)$/i.test(value.trim()));
+  if (!looksConfigured(user, 6) || !looksConfigured(password, 6) || !looksConfigured(customerId, 4) || !looksConfigured(originPostalCode, 4)) {
+    throw new ShippingIntegrationError('SHIPPING_NOT_CONFIGURED', 'Correo Argentino todavía no está configurado. Agregá las credenciales API de MiCorreo en Vercel y volvé a desplegar.');
   }
 
-  return { user, password, customerId, originPostalCode: normalizePostalCode(originPostalCode), baseUrl: baseUrls[environment] };
+  return { user: user!, password: password!, customerId: customerId!, originPostalCode: normalizePostalCode(originPostalCode!), baseUrl: baseUrls[environment] };
 }
 
 export function normalizePostalCode(value: string) {
@@ -56,6 +57,9 @@ async function getToken() {
   });
 
   if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      throw new ShippingIntegrationError('SHIPPING_AUTH_ERROR', `Correo Argentino rechazó las credenciales del ambiente ${config.baseUrl.includes('apitest') ? 'de prueba' : 'productivo'}.`);
+    }
     throw new ShippingIntegrationError('SHIPPING_PROVIDER_ERROR', `MiCorreo rechazó la autenticación (${response.status}).`);
   }
 

@@ -14,7 +14,9 @@ type MercadoPagoPayment = {
 export async function POST(request: Request) {
   const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
   const webhookSecret = process.env.MERCADO_PAGO_WEBHOOK_SECRET;
-  if (!accessToken || !webhookSecret) return NextResponse.json({ message: 'Payment integration not configured.' }, { status: 503 });
+  if (!accessToken || accessToken.trim().length < 20 || !webhookSecret || webhookSecret.trim().length < 20) {
+    return NextResponse.json({ message: 'La integración de Mercado Pago no está configurada.' }, { status: 503 });
+  }
 
   try {
     const url = new URL(request.url);

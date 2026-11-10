@@ -33,7 +33,7 @@ export async function getProductBySku(sku: string): Promise<ProductDetail | null
   try {
     const supabase = await createClient();
     const { data: selected, error } = await supabase.from('product_variants')
-      .select('product_id, sku, color, size, price_ars, products!inner(name, category, brand, description)')
+      .select('id, product_id, sku, color, size, price_ars, products!inner(name, category, brand, description)')
       .eq('sku', sku).single();
     if (error || !selected) throw error;
     const product = Array.isArray(selected.products) ? selected.products[0] : selected.products;
@@ -42,10 +42,9 @@ export async function getProductBySku(sku: string): Promise<ProductDetail | null
       .eq('product_id', selected.product_id).eq('color', selected.color).order('size');
     const { data: publicCatalog } = await supabase.rpc('get_public_catalog');
     const stock = new Map<string, number>((publicCatalog ?? []).map((row: CatalogRow) => [row.variant_id, row.available_stock]));
-    const variantIds = (variants ?? []).map((variant) => variant.id);
     const imageQuery = supabase.from('product_images').select('storage_path').eq('product_id', selected.product_id).order('sort_order');
-    const { data: imageRows } = variantIds.length ? await imageQuery.or(`variant_id.is.null,variant_id.in.(${variantIds.join(',')})`) : await imageQuery.is('variant_id', null);
-    const images = (imageRows ?? []).map((row) => supabase.storage.from('product-images').getPublicUrl(row.storage_path).data.publicUrl);
+    const { data: imageRows } = await imageQuery.or(`variant_id.is.null,variant_id.eq.${selected.id}`);
+    const images = Array.from(new Set((imageRows ?? []).map((row) => supabase.storage.from('product-images').getPublicUrl(row.storage_path).data.publicUrl)));
     return {
       productId: selected.product_id,
       name: product?.name ?? sku,
