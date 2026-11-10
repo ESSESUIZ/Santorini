@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { SiteNav } from '../../components/SiteNav';
+import { InstagramContact } from '../../components/InstagramContact';
 import { money, Product } from '../../lib/catalog';
 
 export default function ShopClient({ initialProducts }: { initialProducts: Product[] }) {
@@ -22,5 +23,6 @@ export default function ShopClient({ initialProducts }: { initialProducts: Produ
       <div className="product-info"><div><h2>{product.name}</h2><p>{product.color} · {inStock.length} talles disponibles</p></div><strong>{product.price ? money(product.price) : 'Precio a confirmar'}</strong></div>
       <Link className="add product-link" href={`/producto/${product.id}`}>{inStock.length ? 'Ver producto' : 'Consultar disponibilidad'}</Link>
     </article>; })}</section>
+    <InstagramContact />
   </main>;
 }

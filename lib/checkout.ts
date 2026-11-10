@@ -6,7 +6,7 @@ import type { PackageDimensions } from './shipping/correo-argentino';
 type RequestedItem = { variantId: string; quantity: number };
 
 export async function getPackageForItems(items: RequestedItem[]): Promise<PackageDimensions> {
-  if (!items.length) throw new Error('La bolsa está vacía.');
+  if (!items.length) throw new Error('El carrito está vacío.');
   const ids = [...new Set(items.map((item) => item.variantId))];
   const supabase = createAdminClient();
   const { data, error } = await supabase
@@ -15,7 +15,7 @@ export async function getPackageForItems(items: RequestedItem[]): Promise<Packag
     .in('id', ids);
 
   if (error) throw error;
-  if (!data || data.length !== ids.length) throw new Error('Hay un producto inválido en la bolsa.');
+  if (!data || data.length !== ids.length) throw new Error('Hay un producto inválido en el carrito.');
   const byId = new Map(data.map((variant) => [variant.id, variant]));
 
   let weight = 0;

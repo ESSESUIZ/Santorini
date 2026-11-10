@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useCart } from '../../../components/CartProvider';
 import { money } from '../../../lib/catalog';
 import type { ProductDetail } from '../../../lib/catalog-server';
@@ -15,15 +15,23 @@ export default function ProductDetailClient({ product }: { product: ProductDetai
   const available = product.variants.filter((variant) => variant.stock > 0);
   const [selectedId, setSelectedId] = useState((available[0] ?? product.variants[0])?.variantId ?? '');
   const [guideOpen, setGuideOpen] = useState(false);
-  const [added, setAdded] = useState(false);
-  const { add } = useCart();
+  const [feedback, setFeedback] = useState<'added' | 'limit' | null>(null);
+  const { add, lines, syncStock } = useCart();
   const selected = useMemo(() => product.variants.find((variant) => variant.variantId === selectedId) ?? product.variants[0], [product.variants, selectedId]);
+  const quantityInCart = selected?.variantId ? lines.find((line) => line.variantId === selected.variantId)?.quantity ?? 0 : 0;
+  const stockLimitReached = Boolean(selected && selected.stock > 0 && quantityInCart >= selected.stock);
   const guide = sizeRows[product.category] ?? sizeRows.default;
 
+  useEffect(() => {
+    product.variants.forEach((variant) => variant.variantId && syncStock(variant.variantId, variant.stock));
+  }, [product.variants, syncStock]);
+
   const addSelected = () => {
-    if (!selected?.variantId || selected.stock < 1) return;
-    add({ variantId: selected.variantId, sku: selected.id, name: product.name, color: selected.color, size: selected.size, price: selected.price });
-    setAdded(true); window.setTimeout(() => setAdded(false), 2200);
+    if (!selected?.variantId || selected.stock < 1 || stockLimitReached) {
+      setFeedback('limit'); return;
+    }
+    add({ variantId: selected.variantId, sku: selected.id, name: product.name, color: selected.color, size: selected.size, price: selected.price, maxQuantity: selected.stock });
+    setFeedback('added'); window.setTimeout(() => setFeedback(null), 2200);
   };
 
   return <>
@@ -40,7 +48,8 @@ export default function ProductDetailClient({ product }: { product: ProductDetai
         <p className="product-description">{product.description}</p>
         <div className="size-heading"><strong>Talle</strong><button onClick={() => setGuideOpen(true)}>Guía de talles</button></div>
         <div className="size-options">{product.variants.map((variant) => <button key={variant.variantId ?? variant.id} disabled={variant.stock < 1} className={selectedId === variant.variantId ? 'selected' : ''} onClick={() => setSelectedId(variant.variantId ?? '')}>{variant.size}</button>)}</div>
-        <button className="button product-add" disabled={!selected || selected.stock < 1 || !selected.price} onClick={addSelected}>{added ? 'Agregado a la bolsa ✓' : selected?.stock ? 'Agregar a la bolsa' : 'Sin stock disponible'}<span>↗</span></button>
+        <p className="product-stock" aria-live="polite">{selected?.stock ? `${selected.stock} ${selected.stock === 1 ? 'unidad disponible' : 'unidades disponibles'}${quantityInCart ? ` · ${quantityInCart} en tu carrito` : ''}` : 'Sin stock disponible'}</p>
+        <button className="button product-add" disabled={!selected || selected.stock < 1 || !selected.price || stockLimitReached} onClick={addSelected}>{stockLimitReached ? `Máximo disponible en carrito (${selected?.stock})` : feedback === 'added' ? 'Agregado al carrito ✓' : selected?.stock ? 'Agregar al carrito' : 'Sin stock disponible'}<span aria-hidden="true">↗</span></button>
         <ul className="product-benefits"><li>Stock sincronizado con el inventario.</li><li>Envíos a todo el país.</li><li>Cambios sujetos a disponibilidad.</li><li>Selección Santorini verificada.</li></ul>
         <details><summary>Envíos</summary><p>Calcularemos el costo y plazo según tu código postal durante el checkout.</p></details>
         <details><summary>Cambios y devoluciones</summary><p>La prenda debe conservar etiquetas y condiciones originales. El plazo se informará al confirmar la compra.</p></details>

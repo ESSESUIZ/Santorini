@@ -30,7 +30,7 @@ export function SiteNav() {
       {account === 'admin' && <Link href="/admin">Operación</Link>}
       {account === 'guest' && <Link href="/cuenta">Iniciar sesión</Link>}
       {(account === 'customer' || account === 'admin') && <Link href="/cuenta">Mi cuenta</Link>}
-      <Link className="bag-link" href="/checkout">Bolsa {count}</Link>
+      <Link className="bag-link" href="/checkout" aria-label={`Carrito con ${count} ${count === 1 ? 'producto' : 'productos'}`}>Carrito <b>{count}</b></Link>
     </span>
   </nav>;
 }

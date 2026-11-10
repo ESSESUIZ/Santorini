@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     const body = await request.json() as { postalCode?: string; items?: { variantId: string; quantity: number }[] };
     const postalCode = body.postalCode?.trim() ?? '';
     const items = Array.isArray(body.items) ? body.items : [];
-    if (!postalCode || !items.length) return NextResponse.json({ message: 'Completá el código postal y la bolsa.' }, { status: 400 });
+    if (!postalCode || !items.length) return NextResponse.json({ message: 'Completá el código postal y el carrito.' }, { status: 400 });
     const dimensions = await getPackageForItems(items);
     const rates = await quoteCorreoArgentino(postalCode, dimensions, 'D');
     if (!rates.length) return NextResponse.json({ message: 'MiCorreo no devolvió opciones para ese código postal.' }, { status: 422 });

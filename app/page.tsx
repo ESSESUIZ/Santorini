@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { SiteNav } from '../components/SiteNav';
+import { InstagramContact } from '../components/InstagramContact';
 
 export default function Home() {
   return <main>
@@ -12,5 +13,6 @@ export default function Home() {
       <p className="lead hero-enter">Colecciones seleccionadas. Stock real. Envíos a todo el país.</p>
       <div className="hero-actions"><Link className="button" href="/tienda">Ver colección <span>↗</span></Link><Link className="text-link" href="/cuenta">Iniciar sesión</Link></div>
     </section>
+    <InstagramContact />
   </main>;
 }

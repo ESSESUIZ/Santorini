@@ -1,0 +1,71 @@
+:root {
+  --ink: #12246b;
+  --ink-deep: #07143d;
+  --paper: #fffcf6;
+  --gold: #c8a85e;
+  --gold-light: #eadcae;
+  --font-commerce: "Barlow Condensed";
+  --font-editorial: "Cormorant Garamond";
+}
+
+body { font-family: Arial, Helvetica, sans-serif; }
+:is(.site-nav, .eyebrow, .button, .text-link, .filters, .product-info, .add, .product-breadcrumb, .size-heading, .product-stock) { font-family: var(--font-commerce), Arial, sans-serif; }
+:is(.hero h1, .catalog-head h1, .product-purchase h1, .checkout-form h1, .admin-head h1) { font-family: var(--font-commerce), Arial, sans-serif; font-weight: 700; }
+button, a { touch-action: manipulation; }
+:is(.account-panel, .login-form) input:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+.site-nav { border-top: 3px solid var(--ink-deep); }
+.site-nav > span > a:not(.bag-link) { position: relative; }
+.site-nav > span > a:not(.bag-link):after { content: ''; position: absolute; left: 0; right: 100%; bottom: 9px; height: 1px; background: var(--gold); transition: right .24s ease; }
+.site-nav > span > a:not(.bag-link):hover:after { right: 0; }
+.bag-link { min-height: 40px; display: inline-flex; align-items: center; gap: 8px; border-color: var(--gold); }
+.bag-link b { min-width: 20px; height: 20px; display: inline-grid; place-items: center; border-radius: 50%; background: var(--ink); color: var(--paper); font-size: 11px; }
+
+.hero h1 { font-weight: 700; letter-spacing: -.055em; text-transform: uppercase; }
+.hero-island { animation: island-enter .9s cubic-bezier(.18,.8,.2,1) .12s both; }
+.button { background: var(--gold); border-radius: 0; text-transform: uppercase; letter-spacing: .075em; font-size: 13px; }
+.button:hover { background: var(--gold-light); }
+.button:active { transform: translateY(0); }
+
+.product { isolation: isolate; }
+.product-info h2 { font-family: var(--font-commerce), Arial, sans-serif; font-size: 20px; font-weight: 700; line-height: 1; }
+.product-stock { margin: 18px 0 -8px; color: #4f5450; font-size: 13px; font-weight: 600; letter-spacing: .02em; }
+.product-add:disabled { background: #d9d5ca; color: #5e625e; opacity: 1; }
+
+.instagram-contact { min-height: 680px; display: grid; grid-template-columns: minmax(0, .92fr) minmax(360px, 1.08fr); overflow: hidden; background: var(--ink-deep); color: var(--paper); border-top: 1px solid rgba(200,168,94,.45); }
+.instagram-contact-copy { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: clamp(64px, 9vw, 130px); }
+.instagram-contact .eyebrow { color: var(--gold-light); }
+.instagram-contact h2 { margin: 0; font-family: var(--font-commerce), Arial, sans-serif; font-size: clamp(4rem, 7.5vw, 8rem); font-weight: 700; line-height: .78; letter-spacing: -.055em; text-transform: uppercase; }
+.instagram-contact h2 em { font-family: var(--font-editorial), Georgia, serif; font-weight: 500; text-transform: none; letter-spacing: -.04em; color: var(--gold-light); }
+.instagram-contact-copy > p:not(.eyebrow) { max-width: 460px; margin: 35px 0 28px; color: rgba(255,252,246,.72); font-size: 17px; line-height: 1.65; text-wrap: pretty; }
+.instagram-dm { min-height: 52px; display: inline-flex; align-items: center; gap: 34px; padding: 14px 19px; background: var(--gold); color: var(--ink-deep); font-family: var(--font-commerce), Arial, sans-serif; font-size: 14px; font-weight: 800; letter-spacing: .075em; text-transform: uppercase; transition: transform .2s ease, background-color .2s ease; }
+.instagram-dm:hover { transform: translateY(-3px); background: var(--gold-light); }
+.instagram-dm:active { transform: translateY(0); }
+.instagram-handle { margin-top: 24px; color: rgba(255,252,246,.72); font-family: var(--font-commerce), Arial, sans-serif; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; border-bottom: 1px solid rgba(255,252,246,.45); }
+.instagram-contact-art { position: relative; display: grid; place-items: center; overflow: hidden; background: #0c1d55; }
+.instagram-contact-art:before { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; background: var(--gold); box-shadow: 0 0 22px 6px rgba(200,168,94,.35); animation: gold-pulse 3.4s ease-in-out infinite; }
+.instagram-contact-art img { position: relative; z-index: 1; width: min(76%, 620px); height: auto; filter: drop-shadow(0 0 32px rgba(92,133,255,.42)); mix-blend-mode: screen; animation: art-reveal .9s ease both; }
+.instagram-contact-art span { position: absolute; bottom: 40px; z-index: 2; color: var(--gold-light); font-family: var(--font-editorial), Georgia, serif; font-size: clamp(1.2rem, 2.4vw, 2.2rem); letter-spacing: .42em; }
+
+@keyframes island-enter { from { opacity: 0; transform: translateY(24px) scale(.97); } to { opacity: .94; transform: none; } }
+@keyframes art-reveal { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes gold-pulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+
+@media (max-width: 850px) {
+  .instagram-contact { grid-template-columns: 1fr; }
+  .instagram-contact-copy { padding: 70px 24px; }
+  .instagram-contact-art { min-height: 520px; }
+}
+
+@media (max-width: 520px) {
+  .site-nav > span > a:not(.bag-link):after { display: none; }
+  .bag-link { gap: 5px; }
+  .instagram-contact h2 { font-size: clamp(3.65rem, 17vw, 5.2rem); }
+  .instagram-contact-art { min-height: 430px; }
+  .instagram-contact-art img { width: 92%; }
+  .instagram-contact-art span { bottom: 28px; font-size: 1.15rem; letter-spacing: .3em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-island, .instagram-contact-art img, .instagram-contact-art:before { animation: none; }
+}

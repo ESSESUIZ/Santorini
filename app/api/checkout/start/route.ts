@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     const items = Array.isArray(body.items) ? body.items : [];
     const postalCode = customer?.address?.postal_code?.trim() ?? '';
     if (!customer?.name || !customer.email || !customer.phone || !customer.address?.street || !customer.address.number || !customer.address.city || !customer.address.province || !postalCode || !items.length || !body.shippingRateId) {
-      return NextResponse.json({ message: 'Completá los datos, la bolsa y una opción de envío.' }, { status: 400 });
+      return NextResponse.json({ message: 'Completá los datos, el carrito y una opción de envío.' }, { status: 400 });
     }
 
     const dimensions = await getPackageForItems(items);
