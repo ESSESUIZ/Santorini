@@ -37,7 +37,7 @@ export default function ProductDetailClient({ product }: { product: ProductDetai
   return <>
     <div className="product-breadcrumb"><Link href="/tienda">Tienda</Link><span>/</span><span>{product.category}</span><span>/</span><strong>{product.name}</strong></div>
     <section className="product-detail">
-      <div className={`product-gallery${product.images.length === 1 ? ' single-image' : ''}`}>
+      <div className={`product-gallery product-gallery-stack${product.images.length === 1 ? ' single-image' : ''}`}>
         {product.images.length ? product.images.map((image, index) => <img key={image} src={image} alt={`${product.name} en ${product.color}${product.images.length > 1 ? `, vista ${index + 1}` : ''}`} width="1200" height="1500" loading={index === 0 ? 'eager' : 'lazy'} fetchPriority={index === 0 ? 'high' : 'auto'} decoding="async" />) : <div className="product-placeholder"><img src="/santorini-island-hero.png" alt="" width="760" height="760" /><span>IMÁGENES PRÓXIMAMENTE</span></div>}
       </div>
       <div className="product-purchase">
