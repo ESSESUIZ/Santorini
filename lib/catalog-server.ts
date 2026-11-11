@@ -11,6 +11,9 @@ export type ProductDetail = {
   description: string;
   color: string;
   images: string[];
+  sizeGuideUrl?: string;
+  sizeGuideMimeType?: string;
+  sizeGuideFileName?: string;
   variants: Product[];
 };
 
@@ -45,6 +48,14 @@ export async function getProductBySku(sku: string): Promise<ProductDetail | null
     const imageQuery = supabase.from('product_images').select('storage_path').eq('product_id', selected.product_id).order('sort_order');
     const { data: imageRows } = await imageQuery.or(`variant_id.is.null,variant_id.eq.${selected.id}`);
     const images = Array.from(new Set((imageRows ?? []).map((row) => supabase.storage.from('product-images').getPublicUrl(row.storage_path).data.publicUrl)));
+    const { data: sizeGuide } = await supabase
+      .from('products')
+      .select('size_guide_storage_path, size_guide_mime_type, size_guide_file_name')
+      .eq('id', selected.product_id)
+      .maybeSingle();
+    const sizeGuideUrl = sizeGuide?.size_guide_storage_path
+      ? supabase.storage.from('product-size-guides').getPublicUrl(sizeGuide.size_guide_storage_path).data.publicUrl
+      : undefined;
     return {
       productId: selected.product_id,
       name: product?.name ?? sku,
@@ -53,6 +64,9 @@ export async function getProductBySku(sku: string): Promise<ProductDetail | null
       description: product?.description ?? 'Una pieza seleccionada por Santorini por su diseño, materialidad y presencia urbana.',
       color: selected.color,
       images,
+      sizeGuideUrl,
+      sizeGuideMimeType: sizeGuide?.size_guide_mime_type ?? undefined,
+      sizeGuideFileName: sizeGuide?.size_guide_file_name ?? undefined,
       variants: (variants ?? []).map((variant) => ({ id: variant.sku, variantId: variant.id, name: product?.name ?? sku, category: product?.category ?? 'Otros', color: variant.color, size: variant.size, price: Number(variant.price_ars), stock: stock.get(variant.id) ?? 0 })),
     };
   } catch {

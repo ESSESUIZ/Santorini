@@ -19,6 +19,9 @@ export type Product = {
   shippingWidthCm?: number;
   shippingHeightCm?: number;
   imageUrl?: string;
+  sizeGuideStoragePath?: string;
+  sizeGuideMimeType?: string;
+  sizeGuideFileName?: string;
 };
 
 export const initialProducts: Product[] = [

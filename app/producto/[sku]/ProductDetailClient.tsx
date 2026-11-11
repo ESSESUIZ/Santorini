@@ -6,11 +6,6 @@ import { useCart } from '../../../components/CartProvider';
 import { money } from '../../../lib/catalog';
 import type { ProductDetail } from '../../../lib/catalog-server';
 
-const sizeRows: Record<string, Array<[string, string, string, string]>> = {
-  Calzado: [['Talle US', '7', '8', '9'], ['Argentina', '39', '40', '41'], ['Pie (cm)', '25', '26', '27']],
-  default: [['Talle', 'S', 'M', 'L'], ['Pecho (cm)', '52', '56', '60'], ['Largo (cm)', '68', '71', '74']],
-};
-
 export default function ProductDetailClient({ product }: { product: ProductDetail }) {
   const available = product.variants.filter((variant) => variant.stock > 0);
   const [selectedId, setSelectedId] = useState((available[0] ?? product.variants[0])?.variantId ?? '');
@@ -20,7 +15,7 @@ export default function ProductDetailClient({ product }: { product: ProductDetai
   const selected = useMemo(() => product.variants.find((variant) => variant.variantId === selectedId) ?? product.variants[0], [product.variants, selectedId]);
   const quantityInCart = selected?.variantId ? lines.find((line) => line.variantId === selected.variantId)?.quantity ?? 0 : 0;
   const stockLimitReached = Boolean(selected && selected.stock > 0 && quantityInCart >= selected.stock);
-  const guide = sizeRows[product.category] ?? sizeRows.default;
+  const guideIsPdf = product.sizeGuideMimeType === 'application/pdf' || product.sizeGuideUrl?.toLowerCase().endsWith('.pdf');
 
   useEffect(() => {
     product.variants.forEach((variant) => variant.variantId && syncStock(variant.variantId, variant.stock));
@@ -55,6 +50,6 @@ export default function ProductDetailClient({ product }: { product: ProductDetai
         <details><summary>Cambios y devoluciones</summary><p>La prenda debe conservar etiquetas y condiciones originales. El plazo se informará al confirmar la compra.</p></details>
       </div>
     </section>
-    {guideOpen && <div className="size-modal" role="dialog" aria-modal="true" aria-labelledby="size-title"><div><button className="modal-close" aria-label="Cerrar guía" onClick={() => setGuideOpen(false)}>×</button><p className="eyebrow">REFERENCIA</p><h2 id="size-title">Guía de talles</h2><p>Medidas orientativas. Pueden variar según marca y modelo.</p><table><tbody>{guide.map((row) => <tr key={row[0]}>{row.map((cell, index) => index === 0 ? <th key={cell}>{cell}</th> : <td key={cell}>{cell}</td>)}</tr>)}</tbody></table></div></div>}
+    {guideOpen && <div className="size-modal" role="dialog" aria-modal="true" aria-labelledby="size-title"><div><button className="modal-close" aria-label="Cerrar guía" onClick={() => setGuideOpen(false)}>×</button><p className="eyebrow">{product.name.toUpperCase()}</p><h2 id="size-title">Guía de talles</h2>{product.sizeGuideUrl ? <div className={`size-guide-file${guideIsPdf ? ' is-document' : ''}`}>{guideIsPdf ? <iframe src={`${product.sizeGuideUrl}#view=FitH`} title={`Guía de talles de ${product.name}`} /> : <img src={product.sizeGuideUrl} alt={`Guía de talles de ${product.name}`} width="1200" height="1600" />}{guideIsPdf && <a href={product.sizeGuideUrl} target="_blank" rel="noreferrer">Abrir documento{product.sizeGuideFileName ? ` · ${product.sizeGuideFileName}` : ''} ↗</a>}</div> : <div className="size-guide-empty"><strong>Guía específica en preparación.</strong><p>Escribinos por Instagram y te ayudamos con las medidas de esta pieza.</p><a className="text-link" href="https://ig.me/m/santorini_oficial1" target="_blank" rel="noreferrer">Consultar por Instagram</a></div>}</div></div>}
   </>;
 }

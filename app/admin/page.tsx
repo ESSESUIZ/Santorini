@@ -15,6 +15,7 @@ type EditorValues = {
 };
 
 type ManagedImage = { id: string; storagePath: string; publicUrl: string; altText: string | null; sortOrder: number };
+type ManagedGuide = { storagePath: string; publicUrl: string; mimeType: string; fileName: string };
 
 const blankEditor: EditorValues = {
   name: '', category: '', brand: '', description: '', sku: '', color: '', size: '', priceArs: '', priceUsd: '', costUsd: '',
@@ -45,13 +46,17 @@ export default function Admin() {
   const [draggingImage, setDraggingImage] = useState(false);
   const [managedImages, setManagedImages] = useState<ManagedImage[]>([]);
   const [deletingImageId, setDeletingImageId] = useState<string | null>(null);
+  const [guideFile, setGuideFile] = useState<File | null>(null);
+  const [guidePreview, setGuidePreview] = useState<string | null>(null);
+  const [managedGuide, setManagedGuide] = useState<ManagedGuide | null>(null);
+  const [deletingGuide, setDeletingGuide] = useState(false);
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const router = useRouter();
 
   const loadCatalog = useCallback(async () => {
     const supabase = createClient();
     const { data: locations } = await supabase.from('inventory_locations').select('id').eq('active', true).limit(1);
-    const fullSelect = 'id, product_id, sku, color, size, price_ars, price_usd, cost_usd, shipping_weight_g, shipping_length_cm, shipping_width_cm, shipping_height_cm, products(name, category, brand, description, status, web_status)';
+    const fullSelect = 'id, product_id, sku, color, size, price_ars, price_usd, cost_usd, shipping_weight_g, shipping_length_cm, shipping_width_cm, shipping_height_cm, products(name, category, brand, description, status, web_status, size_guide_storage_path, size_guide_mime_type, size_guide_file_name)';
     let response: { data: any[] | null; error: any } = await supabase.from('product_variants').select(fullSelect).order('sku');
     if (response.error) response = await supabase.from('product_variants').select('id, product_id, sku, color, size, price_ars, price_usd, cost_usd, products(name, category, brand, description, status, web_status)').order('sku');
     if (response.error) response = await supabase.from('product_variants').select('id, product_id, sku, color, size, price_ars, products(name, category)').order('sku');
@@ -68,6 +73,7 @@ export default function Admin() {
         priceUsd: row.price_usd == null ? undefined : Number(row.price_usd), costUsd: row.cost_usd == null ? undefined : Number(row.cost_usd),
         stock: stock.get(row.id) ?? 0, status: product?.status ?? 'active', webStatus: product?.web_status ?? 'draft',
         shippingWeightG: row.shipping_weight_g, shippingLengthCm: row.shipping_length_cm, shippingWidthCm: row.shipping_width_cm, shippingHeightCm: row.shipping_height_cm,
+        sizeGuideStoragePath: product?.size_guide_storage_path ?? undefined, sizeGuideMimeType: product?.size_guide_mime_type ?? undefined, sizeGuideFileName: product?.size_guide_file_name ?? undefined,
       } as Product;
     }));
     setLocationId(locations?.[0]?.id ?? null);
@@ -111,9 +117,16 @@ export default function Admin() {
     setManagedImages((data ?? []).map((image) => ({ id: image.id, storagePath: image.storage_path, altText: image.alt_text, sortOrder: image.sort_order, publicUrl: supabase.storage.from('product-images').getPublicUrl(image.storage_path).data.publicUrl })));
   };
 
-  const openCreate = () => { setEditing(null); setEditor(blankEditor); setImageFile(null); setImagePreview(null); setManagedImages([]); setDraggingImage(false); setNotice(null); };
-  const openEdit = async (product: Product) => { setEditing(product); setEditor(valuesFromProduct(product)); setImageFile(null); setImagePreview(null); setManagedImages([]); setNotice(null); if (product.variantId) await loadManagedImages(product.variantId); };
-  const closeEditor = () => { if (!saving && !deletingImageId) { setEditor(null); setEditing(null); setImageFile(null); setImagePreview(null); setManagedImages([]); setDraggingImage(false); } };
+  const resetGuide = () => { if (guidePreview) URL.revokeObjectURL(guidePreview); setGuideFile(null); setGuidePreview(null); setManagedGuide(null); setDeletingGuide(false); };
+  const guideFromProduct = (product: Product) => product.sizeGuideStoragePath ? {
+    storagePath: product.sizeGuideStoragePath,
+    mimeType: product.sizeGuideMimeType ?? '',
+    fileName: product.sizeGuideFileName ?? 'Guía de talles',
+    publicUrl: createClient().storage.from('product-size-guides').getPublicUrl(product.sizeGuideStoragePath).data.publicUrl,
+  } : null;
+  const openCreate = () => { setEditing(null); setEditor(blankEditor); setImageFile(null); setImagePreview(null); setManagedImages([]); resetGuide(); setDraggingImage(false); setNotice(null); };
+  const openEdit = async (product: Product) => { setEditing(product); setEditor(valuesFromProduct(product)); setImageFile(null); setImagePreview(null); setManagedImages([]); resetGuide(); setManagedGuide(guideFromProduct(product)); setNotice(null); if (product.variantId) await loadManagedImages(product.variantId); };
+  const closeEditor = () => { if (!saving && !deletingImageId && !deletingGuide) { setEditor(null); setEditing(null); setImageFile(null); setImagePreview(null); setManagedImages([]); resetGuide(); setDraggingImage(false); } };
   const change = (field: keyof EditorValues, value: string) => setEditor((current) => current ? { ...current, [field]: value } : current);
 
   const selectImage = (file: File | undefined) => {
@@ -122,6 +135,15 @@ export default function Admin() {
     if (file.size > 5 * 1024 * 1024) { setNotice({ type: 'error', text: 'La imagen no puede superar los 5 MB.' }); return; }
     if (imagePreview) URL.revokeObjectURL(imagePreview);
     setImageFile(file); setImagePreview(URL.createObjectURL(file)); setNotice(null);
+  };
+
+  const selectGuide = (file: File | undefined) => {
+    if (!file) return;
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+    if (!allowed.includes(file.type)) { setNotice({ type: 'error', text: 'La guía debe ser JPG, PNG, WebP o PDF.' }); return; }
+    if (file.size > 10 * 1024 * 1024) { setNotice({ type: 'error', text: 'La guía no puede superar los 10 MB.' }); return; }
+    if (guidePreview) URL.revokeObjectURL(guidePreview);
+    setGuideFile(file); setGuidePreview(file.type === 'application/pdf' ? null : URL.createObjectURL(file)); setNotice(null);
   };
 
   const uploadProductImage = async (file: File, productId: string, variantId: string, sku: string) => {
@@ -149,6 +171,34 @@ export default function Admin() {
     setNotice(storageError ? { type: 'error', text: 'La imagen dejó de mostrarse, pero el archivo no pudo eliminarse del almacenamiento.' } : { type: 'success', text: 'Imagen eliminada de la variante.' });
   };
 
+  const uploadSizeGuide = async (file: File, productId: string, sku: string) => {
+    const supabase = createClient();
+    const extension = file.name.split('.').pop()?.toLowerCase() || 'pdf';
+    const safeSku = sku.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+    const storagePath = `guides/${productId}/${Date.now()}-${safeSku}.${extension}`;
+    const { error: uploadError } = await supabase.storage.from('product-size-guides').upload(storagePath, file, { contentType: file.type, upsert: false });
+    if (uploadError) return uploadError.message;
+    const { error: updateError } = await supabase.from('products').update({
+      size_guide_storage_path: storagePath,
+      size_guide_mime_type: file.type,
+      size_guide_file_name: file.name,
+    }).eq('id', productId);
+    if (updateError) { await supabase.storage.from('product-size-guides').remove([storagePath]); return updateError.message; }
+    if (managedGuide?.storagePath) await supabase.storage.from('product-size-guides').remove([managedGuide.storagePath]);
+    return null;
+  };
+
+  const deleteSizeGuide = async () => {
+    if (!editing?.productId || !managedGuide || !window.confirm('¿Eliminar la guía de talles de este producto?')) return;
+    setDeletingGuide(true); setNotice(null);
+    const supabase = createClient();
+    const { error: updateError } = await supabase.from('products').update({ size_guide_storage_path: null, size_guide_mime_type: null, size_guide_file_name: null }).eq('id', editing.productId);
+    if (updateError) { setDeletingGuide(false); setNotice({ type: 'error', text: `No pudimos eliminar la guía: ${updateError.message}` }); return; }
+    const { error: storageError } = await supabase.storage.from('product-size-guides').remove([managedGuide.storagePath]);
+    setManagedGuide(null); setDeletingGuide(false);
+    setNotice(storageError ? { type: 'error', text: 'La guía dejó de mostrarse, pero el archivo no pudo eliminarse del almacenamiento.' } : { type: 'success', text: 'Guía de talles eliminada.' });
+  };
+
   const saveProduct = async (event: FormEvent) => {
     event.preventDefault();
     if (!editor) return;
@@ -164,10 +214,11 @@ export default function Admin() {
     const productId = editing?.productId ?? created?.product_id;
     const variantId = editing?.variantId ?? created?.variant_id;
     const imageError = imageFile && productId && variantId ? await uploadProductImage(imageFile, productId, variantId, editor.sku) : null;
+    const guideError = guideFile && productId ? await uploadSizeGuide(guideFile, productId, editor.sku) : null;
     setSaving(false);
-    if (imageError) { setNotice({ type: 'error', text: `El producto fue guardado, pero no pudimos subir la imagen: ${imageError}` }); await loadCatalog(); return; }
-    await loadCatalog(); setEditor(null); setEditing(null); setImageFile(null); setImagePreview(null);
-    setNotice({ type: 'success', text: `${editing ? 'Producto actualizado' : 'Producto creado'}${imageFile ? ' e imagen cargada' : ''} correctamente.` });
+    if (imageError || guideError) { setNotice({ type: 'error', text: `El producto fue guardado, pero no pudimos subir ${imageError ? `la imagen: ${imageError}` : `la guía de talles: ${guideError}`}` }); await loadCatalog(); return; }
+    await loadCatalog(); setEditor(null); setEditing(null); setImageFile(null); setImagePreview(null); resetGuide();
+    setNotice({ type: 'success', text: `${editing ? 'Producto actualizado' : 'Producto creado'}${imageFile || guideFile ? ' y archivos cargados' : ''} correctamente.` });
   };
 
   const archiveProduct = async (product: Product) => {
@@ -191,6 +242,7 @@ export default function Admin() {
         <fieldset><legend>Información del producto</legend><div className="editor-grid"><label className="span-2">Nombre<input required value={editor.name} onChange={(e) => change('name', e.target.value)} /></label><label>Categoría<input required value={editor.category} onChange={(e) => change('category', e.target.value)} /></label><label>Marca<input value={editor.brand} onChange={(e) => change('brand', e.target.value)} /></label><label className="span-2">Descripción<textarea rows={4} value={editor.description} onChange={(e) => change('description', e.target.value)} /></label><label>Estado operativo<select value={editor.status} onChange={(e) => change('status', e.target.value)}><option value="active">Activo</option><option value="archived">Baja</option></select></label><label>Estado web<select value={editor.webStatus} onChange={(e) => change('webStatus', e.target.value)}><option value="draft">Borrador</option><option value="published">Publicado</option></select></label></div></fieldset>
         <fieldset><legend>Variante y precio</legend><div className="editor-grid"><label>SKU<input required pattern="SAN-[0-9]{4}" placeholder="SAN-0059" value={editor.sku} onChange={(e) => change('sku', e.target.value.toUpperCase())} /></label><label>Color<input required value={editor.color} onChange={(e) => change('color', e.target.value)} /></label><label>Talle<input required value={editor.size} onChange={(e) => change('size', e.target.value)} /></label><label>Precio ARS<input required min="0" step="0.01" type="number" value={editor.priceArs} onChange={(e) => change('priceArs', e.target.value)} /></label><label>Precio USD<input min="0" step="0.01" type="number" value={editor.priceUsd} onChange={(e) => change('priceUsd', e.target.value)} /></label><label>Costo USD<input min="0" step="0.01" type="number" value={editor.costUsd} onChange={(e) => change('costUsd', e.target.value)} /></label>{!editing && <label>Stock inicial<input min="0" step="1" type="number" value={editor.initialStock} onChange={(e) => change('initialStock', e.target.value)} /></label>}</div></fieldset>
         <fieldset><legend>Imágenes de la variante</legend>{editing && <div className="managed-images" aria-label="Imágenes cargadas">{managedImages.length ? managedImages.map((image) => <figure key={image.id}><img src={image.publicUrl} alt={image.altText || `Imagen de ${editing.name}`} width="160" height="200" /><button type="button" onClick={() => deleteManagedImage(image)} disabled={deletingImageId === image.id}>{deletingImageId === image.id ? 'Eliminando…' : 'Eliminar'}</button></figure>) : <p className="managed-images-empty">Todavía no hay imágenes cargadas para esta variante.</p>}</div>}<label className={`image-dropzone${draggingImage ? ' dragging' : ''}`} onDragEnter={() => setDraggingImage(true)} onDragOver={(event) => { event.preventDefault(); setDraggingImage(true); }} onDragLeave={() => setDraggingImage(false)} onDrop={(event) => { event.preventDefault(); setDraggingImage(false); selectImage(event.dataTransfer.files[0]); }}><input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => selectImage(event.target.files?.[0])} />{imagePreview ? <><img src={imagePreview} alt="Vista previa de la imagen seleccionada" width="240" height="300" /><span><strong>{imageFile?.name}</strong><small>Hacé clic o arrastrá otra imagen para reemplazarla.</small></span></> : <><span className="image-drop-icon" aria-hidden="true">↥</span><span><strong>{editing ? 'Sumá otra imagen a esta variante' : 'Arrastrá una imagen o hacé clic para seleccionarla'}</strong><small>JPG, PNG o WebP · hasta 5 MB · se asociará a esta variante.</small></span></>}</label></fieldset>
+        <fieldset><legend>Guía de talles</legend><p className="editor-field-hint">Se comparte entre todos los talles y colores de este producto. Se mostrará desde la ficha pública.</p>{managedGuide && <div className="managed-guide"><span><strong>{managedGuide.fileName}</strong><small>{managedGuide.mimeType === 'application/pdf' ? 'Documento PDF publicado' : 'Imagen publicada'}</small></span><a href={managedGuide.publicUrl} target="_blank" rel="noreferrer">Ver ↗</a><button type="button" className="danger-action" onClick={deleteSizeGuide} disabled={deletingGuide}>{deletingGuide ? 'Eliminando…' : 'Eliminar'}</button></div>}<label className="guide-dropzone" onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); selectGuide(event.dataTransfer.files[0]); }}><input className="sr-only" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={(event) => selectGuide(event.target.files?.[0])} />{guideFile ? <><span>{guidePreview ? <img src={guidePreview} alt="Vista previa de la guía seleccionada" width="100" height="130" /> : <span className="guide-file-icon" aria-hidden="true">PDF</span>}</span><span><strong>{guideFile.name}</strong><small>Lista para guardarse con el producto.</small></span></> : <><span className="image-drop-icon" aria-hidden="true">↥</span><span><strong>{managedGuide ? 'Reemplazar guía de talles' : 'Arrastrá una guía o hacé clic para seleccionarla'}</strong><small>JPG, PNG, WebP o PDF · hasta 10 MB.</small></span></>}</label></fieldset>
         <fieldset><legend>Datos para envío</legend><div className="editor-grid shipping-grid"><label>Peso (g)<input required min="1" type="number" value={editor.shippingWeightG} onChange={(e) => change('shippingWeightG', e.target.value)} /></label><label>Largo (cm)<input required min="1" step="0.1" type="number" value={editor.shippingLengthCm} onChange={(e) => change('shippingLengthCm', e.target.value)} /></label><label>Ancho (cm)<input required min="1" step="0.1" type="number" value={editor.shippingWidthCm} onChange={(e) => change('shippingWidthCm', e.target.value)} /></label><label>Alto (cm)<input required min="1" step="0.1" type="number" value={editor.shippingHeightCm} onChange={(e) => change('shippingHeightCm', e.target.value)} /></label></div></fieldset>
         <div className="editor-footer"><button type="button" className="secondary-button" onClick={closeEditor}>Cancelar</button><button className="button" disabled={saving}>{saving ? 'Guardando…' : editing ? 'Guardar cambios' : 'Crear producto'} <span>→</span></button></div>
       </form>
