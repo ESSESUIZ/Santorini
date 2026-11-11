@@ -36,7 +36,7 @@
 .transfer-whatsapp { justify-content: space-between; width: fit-content; }
 .manual-order-result { display: grid; align-content: start; gap: 22px; max-width: 620px; animation: transfer-reveal .38s cubic-bezier(.2,.75,.3,1) both; }
 .manual-order-result .result-mark { width: 62px; height: 62px; color: var(--ink); border-color: var(--gold); background: #f6ecd3; }
-.manual-order-result h1 { margin: 0; font-size: clamp(3.2rem, 7vw, 6rem); line-height: .82; letter-spacing: -.085em; }
+.manual-order-result h1 { margin: 0; max-width: 11ch; font-size: clamp(3rem, 5.8vw, 5rem); line-height: .92; letter-spacing: -.045em; text-wrap: balance; }
 .manual-order-result > p { margin: 0; color: var(--muted); line-height: 1.7; }
 .pickup-confirmation { display: grid; gap: 7px; padding: 19px; border-left: 4px solid var(--gold); background: #f5f0e4; }
 .pickup-confirmation span { color: var(--muted); font-size: 13px; line-height: 1.5; }
