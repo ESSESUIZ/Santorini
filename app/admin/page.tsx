@@ -178,7 +178,7 @@ export default function Admin() {
   };
 
   return <main className="admin">
-    <nav><Brand /><span><Link href="/tienda">Ver tienda</Link><strong>Admin</strong></span></nav>
+    <nav><Brand /><span><Link href="/admin/pedidos">Pedidos</Link><Link href="/tienda">Ver tienda</Link><strong>Admin</strong></span></nav>
     <header className="admin-head"><div><p className="eyebrow">OPERACIÓN · {mode === 'live' ? 'SUPABASE CONECTADO' : 'MODO DEMO'}</p><h1>Catálogo e inventario</h1><p>Altas, modificaciones, bajas lógicas y stock desde un único panel.</p></div><button className="button" onClick={openCreate}>Nuevo producto <span>＋</span></button></header>
     {notice && <div className={`admin-notice ${notice.type}`} role="status">{notice.text}<button onClick={() => setNotice(null)} aria-label="Cerrar aviso">×</button></div>}
     <section className="metrics"><article><p>Variantes normalizadas</p><strong>{products.length}</strong></article><article><p>Stock contado</p><strong>{units}</strong></article><article><p>Valor visible</p><strong>{money(products.filter((item) => item.stock > 0).reduce((sum, item) => sum + item.price * item.stock, 0))}</strong></article><article><p>Productos publicados</p><strong>{products.filter((item) => item.status === 'active' && item.webStatus === 'published').length}</strong></article></section>

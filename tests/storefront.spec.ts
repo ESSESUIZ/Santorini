@@ -41,3 +41,8 @@ test('operación exige autenticación', async ({ page }) => {
   await expect(page).toHaveURL(/\/admin\/login/);
   await expect(page.getByRole('heading', { name: /panel operativo/i })).toBeVisible();
 });
+
+test('pedidos exige autenticación administrativa', async ({ page }) => {
+  await page.goto('/admin/pedidos');
+  await expect(page).toHaveURL(/\/admin\/login/);
+});
