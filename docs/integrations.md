@@ -60,6 +60,19 @@ BANK_TRANSFER_ACCOUNT_HOLDER=<titular de la cuenta>
 
 Después de agregarlas en Vercel, crear un nuevo deployment. No usar el prefijo `NEXT_PUBLIC_`: estos datos se entregan recién después de reservar un pedido por transferencia.
 
+## Retiro en Recoleta y pagos manuales
+
+El checkout usa únicamente `Retiro en persona · Recoleta`, sin cotización de Correo Argentino. El cliente puede elegir transferencia o efectivo; en ambos casos la coordinación del pago y retiro se inicia por WhatsApp.
+
+Al confirmar manualmente un pago desde **Operación → Pedidos**, la aplicación puede enviar un correo de confirmación con el detalle del pedido y el retiro. Para activarlo, crear una cuenta y verificar un dominio remitente en [Resend](https://resend.com/docs), y cargar estas variables privadas en Vercel:
+
+```text
+RESEND_API_KEY=re_...
+ORDER_EMAIL_FROM=Santorini <ventas@tu-dominio.com>
+```
+
+Sin estas variables el pago se confirma igual y el panel avisa que el correo queda pendiente de configuración.
+
 ## Vercel
 
 En **Project → Settings → Environment Variables**, agregar todas las variables para el ambiente correspondiente. Después de cambiar cualquier valor hay que crear un nuevo deployment: los deployments existentes no reciben cambios retroactivos.

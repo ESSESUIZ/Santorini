@@ -46,3 +46,11 @@ test('pedidos exige autenticación administrativa', async ({ page }) => {
   await page.goto('/admin/pedidos');
   await expect(page).toHaveURL(/\/admin\/login/);
 });
+
+test('checkout ofrece retiro en Recoleta y pagos manuales', async ({ page }) => {
+  await page.goto('/checkout');
+  await expect(page.getByText(/retiro en persona · recoleta/i).first()).toBeVisible();
+  await expect(page.getByText(/transferencia bancaria/i)).toBeVisible();
+  await expect(page.getByText(/pago en efectivo/i)).toBeVisible();
+  await expect(page.locator('main')).not.toContainText(/mercado pago|correo argentino/i);
+});

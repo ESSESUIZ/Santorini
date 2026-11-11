@@ -18,6 +18,12 @@
 .payment-methods label span { display: grid; gap: 4px; }
 .payment-methods label small { color: var(--muted); font-size: 12px; line-height: 1.45; letter-spacing: 0; text-transform: none; }
 .payment-methods label b { color: var(--gold); font-size: 19px; }
+.pickup-method { border: 0; padding: 0; display: grid; gap: 9px; }
+.pickup-method legend { font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 9px; }
+.pickup-method label { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 14px; padding: 17px; border: 1px solid var(--ink); background: #f1f4ff; box-shadow: inset 4px 0 var(--gold); }
+.pickup-method label span { display: grid; gap: 4px; }
+.pickup-method label small { color: var(--muted); font-size: 12px; line-height: 1.45; letter-spacing: 0; text-transform: none; }
+.pickup-method label b { color: var(--gold); font-size: 18px; }
 .transfer-confirmation { display: grid; align-content: start; gap: 22px; max-width: 600px; animation: transfer-reveal .38s cubic-bezier(.2,.75,.3,1) both; }
 .transfer-confirmation h2 { margin: 0; font-size: clamp(3rem, 6vw, 5.5rem); line-height: .82; letter-spacing: -.08em; }
 .transfer-confirmation > p { margin: 0; color: var(--muted); line-height: 1.7; }
@@ -28,6 +34,12 @@
 .transfer-alias small { color: var(--muted); font-size: 12px; }
 .transfer-alias button { justify-self: start; margin-top: 6px; border: 0; border-bottom: 1px solid var(--ink); background: transparent; color: var(--ink); padding: 4px 0; font-size: 11px; font-weight: 800; cursor: pointer; }
 .transfer-whatsapp { justify-content: space-between; width: fit-content; }
+.manual-order-result { display: grid; align-content: start; gap: 22px; max-width: 620px; animation: transfer-reveal .38s cubic-bezier(.2,.75,.3,1) both; }
+.manual-order-result .result-mark { width: 62px; height: 62px; color: var(--ink); border-color: var(--gold); background: #f6ecd3; }
+.manual-order-result h1 { margin: 0; font-size: clamp(3.2rem, 7vw, 6rem); line-height: .82; letter-spacing: -.085em; }
+.manual-order-result > p { margin: 0; color: var(--muted); line-height: 1.7; }
+.pickup-confirmation { display: grid; gap: 7px; padding: 19px; border-left: 4px solid var(--gold); background: #f5f0e4; }
+.pickup-confirmation span { color: var(--muted); font-size: 13px; line-height: 1.5; }
 @keyframes transfer-reveal { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 .checkout-pay { justify-content: space-between; }
 .summary-line { display: flex; justify-content: space-between; padding-top: 18px; font-size: 14px; }
