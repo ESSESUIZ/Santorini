@@ -1,25 +1,20 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '../../../../lib/supabase/admin';
 import { createClient } from '../../../../lib/supabase/server';
+import { readCheckoutBody, takeRateLimit } from '../../../../lib/security/request-guard';
 
 export const runtime = 'nodejs';
 
-type CheckoutBody = {
-  customer?: { name?: string; email?: string; phone?: string };
-  items?: { variantId: string; quantity: number }[];
-  paymentMethod?: 'bank_transfer' | 'cash';
-};
 type CreatedOrder = { order_id: string; order_number: string; total_ars: number };
 
 export async function POST(request: Request) {
+  if (!takeRateLimit(request, 'checkout', 8, 10 * 60_000)) return NextResponse.json({ message: 'Esperá unos minutos antes de volver a intentar.' }, { status: 429 });
   let orderId: string | null = null;
   const admin = createAdminClient();
   try {
-    const body = await request.json() as CheckoutBody;
-    const customer = body.customer;
-    const items = Array.isArray(body.items) ? body.items : [];
-    const paymentMethod = body.paymentMethod === 'cash' ? 'cash' : 'bank_transfer';
-    if (!customer?.name || !customer.email || !customer.phone || !items.length) return NextResponse.json({ message: 'Completá tus datos de contacto y el carrito.' }, { status: 400 });
+    const parsed = readCheckoutBody(await request.json());
+    if (!parsed) return NextResponse.json({ message: 'Revisá tus datos de contacto y el carrito.' }, { status: 400 });
+    const { customer, items, paymentMethod } = parsed;
 
     const whatsapp = process.env.BANK_TRANSFER_WHATSAPP?.replace(/\D/g, '');
     const alias = process.env.BANK_TRANSFER_ALIAS?.trim();
@@ -46,6 +41,6 @@ export async function POST(request: Request) {
   } catch (error) {
     if (orderId) await admin.rpc('release_checkout_order', { p_order_id: orderId });
     console.error('Manual checkout start error', error);
-    return NextResponse.json({ message: error instanceof Error ? error.message : 'No pudimos iniciar el pedido.' }, { status: 500 });
+    return NextResponse.json({ message: 'No pudimos iniciar el pedido. Intentá de nuevo.' }, { status: 500 });
   }
 }

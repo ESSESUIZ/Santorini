@@ -201,3 +201,42 @@ button, a { touch-action: manipulation; }
   .hero-island, .home-island-motion, .home-island-motion img, .instagram-contact-art img, .instagram-contact-art:before,.home-page .instagram-contact-copy > * { animation: none; opacity: 1; transform: none; }
   .home-island-motion { transform: translateY(-50%); }
 }
+
+/* 2026 visual refinement: integrated island, sharper controls and more breathing room. */
+.home-story-visual { inset: 0; position: absolute; top: 0; height: 100%; margin: 0; z-index: -1; }
+.home-story-visual:before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 74% 42%, transparent 0 18%, rgba(7,20,61,.08) 44%, #07143d 86%), linear-gradient(90deg, #07143d 0 34%, transparent 69%); z-index: 1; }
+.home-island-motion { right: 4vw; width: min(48vw, 780px); }
+.home-island-motion img { opacity: .98; filter: brightness(1.16) contrast(1.08) drop-shadow(0 0 42px rgba(72,130,255,.55)); -webkit-mask-image: radial-gradient(ellipse 63% 63% at 50% 50%, #000 43%, transparent 74%); mask-image: radial-gradient(ellipse 63% 63% at 50% 50%, #000 43%, transparent 74%); }
+.home-page .hero { position: relative; z-index: 1; }
+.home-page .hero h1, .catalog-head h1, .product-purchase h1, .checkout-form h1, .admin-head h1, .account-panel h1, .reset-form h1 { letter-spacing: -.045em; line-height: .9; }
+.hero .eyebrow, .catalog-head .eyebrow { letter-spacing: .24em; }
+.hero .lead { letter-spacing: .025em; line-height: 1.55; }
+.button, .add, .bag-link, .site-nav .bag-link, .filters button, .catalog-selects select, .catalog-search input, .hero-actions .button, .admin-head .button { border-radius: 0; }
+.button { padding: 15px 24px; letter-spacing: .055em; }
+.button:hover, .add:not(:disabled):hover { transform: translateY(-2px); background: var(--ink); color: var(--paper); }
+.catalog-head { min-height: 390px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, .84fr); align-items: center; padding: 5vw; border-radius: 0; background: radial-gradient(circle at 76% 50%, #173b95 0, transparent 30%), linear-gradient(115deg, #07143d, #102a76); color: var(--paper); }
+.catalog-copy { position: relative; z-index: 1; }
+.catalog-head .catalog-copy .eyebrow { color: var(--gold-light); margin-bottom: 26px; }
+.catalog-head h1 { font-style: italic; max-width: 680px; text-transform: uppercase; text-wrap: balance; }
+.catalog-banner-island { min-height: 310px; position: relative; overflow: hidden; display: grid; place-items: center; }
+.catalog-banner-island:after { content: ''; position: absolute; inset: 7% 5%; border: 1px solid rgba(230,202,122,.42); border-radius: 50%; }
+.catalog-banner-island img { width: min(100%, 520px); height: auto; mix-blend-mode: screen; filter: brightness(1.13) drop-shadow(0 0 28px rgba(85,141,255,.52)); -webkit-mask-image: radial-gradient(ellipse 65% 62% at 50% 50%, #000 42%, transparent 75%); mask-image: radial-gradient(ellipse 65% 62% at 50% 50%, #000 42%, transparent 75%); animation: island-scene-float 5s ease-in-out infinite; }
+.catalog-controls { align-items: end; gap: 32px; padding-top: 34px; }
+.catalog-filter-stack { flex: 1; min-width: 0; display: grid; gap: 17px; }
+.catalog-search { width: min(430px, 100%); display: grid; gap: 7px; color: var(--ink); font: 700 11px var(--font-commerce), Arial, sans-serif; letter-spacing: .15em; text-transform: uppercase; }
+.catalog-search input { min-height: 44px; padding: 10px 14px; border: 1px solid var(--ink); background: transparent; color: var(--ink); letter-spacing: .02em; }
+.catalog-search input:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.filters { padding: 0; }
+.filters button { min-height: 40px; padding-inline: 17px; letter-spacing: .045em; }
+.product { border-radius: 0; }
+.product-image { border-radius: 0; }
+.product-info h2 { letter-spacing: .01em; }
+.product-info p { letter-spacing: .025em; }
+@media (max-width: 850px) {
+  .home-story-visual { opacity: .62; }
+  .home-story-visual:before { background: linear-gradient(90deg, rgba(7,20,61,.82), rgba(7,20,61,.38)); }
+  .home-island-motion { right: -12vw; width: 92vw; }
+  .catalog-head { min-height: 500px; grid-template-columns: 1fr; padding: 62px 24px 34px; }
+  .catalog-banner-island { position: absolute; inset: 0 -16vw 0 auto; width: 70vw; opacity: .55; }
+  .catalog-copy { max-width: 85%; }
+}

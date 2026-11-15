@@ -2,13 +2,15 @@ import { NextResponse } from 'next/server';
 import { buildOrderConfirmationEmail } from '../../../../../lib/emails/order-confirmation';
 import { createAdminClient } from '../../../../../lib/supabase/admin';
 import { createClient } from '../../../../../lib/supabase/server';
+import { isSameOrigin, isUuid } from '../../../../../lib/security/request-guard';
 
 export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
   try {
+    if (!isSameOrigin(request)) return NextResponse.json({ message: 'Solicitud no permitida.' }, { status: 403 });
     const body = await request.json() as { orderId?: string };
-    if (!body.orderId) return NextResponse.json({ message: 'Falta el pedido.' }, { status: 400 });
+    if (!isUuid(body.orderId)) return NextResponse.json({ message: 'Pedido inválido.' }, { status: 400 });
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ message: 'No autorizado.' }, { status: 401 });
@@ -29,6 +31,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ email: 'sent' });
   } catch (error) {
     console.error('Manual payment confirmation error', error);
-    return NextResponse.json({ message: error instanceof Error ? error.message : 'No pudimos confirmar el pago.' }, { status: 500 });
+    return NextResponse.json({ message: 'No pudimos confirmar el pago. Intentá de nuevo.' }, { status: 500 });
   }
 }

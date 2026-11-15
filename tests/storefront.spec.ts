@@ -36,6 +36,15 @@ test('la tienda muestra el catálogo y navega al producto', async ({ page }) => 
   await expect(page.locator('.product-purchase h1')).toBeVisible();
 });
 
+test('una prenda con talles cargados por separado los muestra en una sola ficha', async ({ page }) => {
+  await page.goto('/tienda');
+  const card = page.locator('.product', { hasText: 'Remera ENZO' });
+  await expect(card).toContainText(/2 talles disponibles/i);
+  await card.locator('a.product-image').click();
+  await expect(page.locator('.size-options')).toContainText('M');
+  await expect(page.locator('.size-options')).toContainText('XL');
+});
+
 test('operación exige autenticación', async ({ page }) => {
   await page.goto('/admin');
   await expect(page).toHaveURL(/\/admin\/login/);

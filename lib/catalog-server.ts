@@ -40,9 +40,17 @@ export async function getProductBySku(sku: string): Promise<ProductDetail | null
       .eq('sku', sku).single();
     if (error || !selected) throw error;
     const product = Array.isArray(selected.products) ? selected.products[0] : selected.products;
+    // A garment can be loaded in separate operational records (one per size).
+    // In the storefront they remain one product page, while each record keeps its own name and SKU.
+    const { data: matchingProducts } = await supabase.from('products')
+      .select('id')
+      .eq('name', product?.name ?? '')
+      .eq('category', product?.category ?? '');
+    const productIds = (matchingProducts ?? []).map((item) => item.id);
     const { data: variants } = await supabase.from('product_variants')
       .select('id, sku, color, size, price_ars')
-      .eq('product_id', selected.product_id).eq('color', selected.color).order('size');
+      .in('product_id', productIds.length ? productIds : [selected.product_id])
+      .eq('color', selected.color).order('size');
     const { data: publicCatalog } = await supabase.rpc('get_public_catalog');
     const stock = new Map<string, number>((publicCatalog ?? []).map((row: CatalogRow) => [row.variant_id, row.available_stock]));
     const imageQuery = supabase.from('product_images').select('storage_path').eq('product_id', selected.product_id).order('sort_order');

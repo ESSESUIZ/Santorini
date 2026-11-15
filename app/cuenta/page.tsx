@@ -7,7 +7,7 @@ import { AccountDashboard } from '../../components/AccountDashboard';
 import { createClient } from '../../lib/supabase/browser';
 
 export default function AccountPage() {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState<'login' | 'register' | 'recovery'>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -47,6 +47,14 @@ export default function AccountPage() {
     setMessage('Cerraste sesión. Podés seguir recorriendo la tienda.');
   };
 
+  const recover = async (event: FormEvent) => {
+    event.preventDefault();
+    setBusy(true);
+    await createClient().auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/cuenta/restablecer` });
+    setMessage('Si existe una cuenta con ese email, vas a recibir un enlace seguro para crear una nueva contraseña. Revisá también spam.');
+    setBusy(false);
+  };
+
   return <main className="account-page">
     <nav><Brand /><span><Link href="/tienda">Seguir comprando</Link></span></nav>
     <section className="account-shell">
@@ -54,18 +62,18 @@ export default function AccountPage() {
       <div className="account-panel">
         <p className="eyebrow">CUENTA SANTORINI</p>
         {currentUser ? <AccountDashboard userId={currentUser.id} email={currentUser.email} onSignOut={signOut} /> : <>
-          <div className="account-tabs" role="tablist" aria-label="Acceso a cuenta">
+          {mode !== 'recovery' && <div className="account-tabs" role="tablist" aria-label="Acceso a cuenta">
             <button role="tab" aria-selected={mode === 'login'} onClick={() => { setMode('login'); setMessage(''); }}>Iniciar sesión</button>
             <button role="tab" aria-selected={mode === 'register'} onClick={() => { setMode('register'); setMessage(''); }}>Crear cuenta</button>
-          </div>
-          <h1>{mode === 'login' ? <>Volvé a<br />Santorini.</> : <>Tu estilo,<br />en un lugar.</>}</h1>
-          <form onSubmit={submit}>
+          </div>}
+          <h1>{mode === 'recovery' ? <>Recuperá<br />tu acceso.</> : mode === 'login' ? <>Volvé a<br />Santorini.</> : <>Tu estilo,<br />en un lugar.</>}</h1>
+          {mode === 'recovery' ? <form onSubmit={recover}><p className="account-copy">Ingresá tu email y te enviaremos un enlace de un solo uso para definir una nueva contraseña.</p><label>Email<input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label><button className="button" disabled={busy}>{busy ? 'Enviando…' : 'Enviar enlace seguro'} <span>↗</span></button><button className="text-button" type="button" onClick={() => { setMode('login'); setMessage(''); }}>Volver a iniciar sesión</button></form> : <form onSubmit={submit}>
             {mode === 'register' && <label>Nombre<input type="text" autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} required /></label>}
             <label>Email<input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
             <label>Contraseña<input type="password" minLength={8} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} value={password} onChange={(event) => setPassword(event.target.value)} required /></label>
             <button className="button" disabled={busy}>{busy ? 'Procesando…' : mode === 'login' ? 'Ingresar' : 'Crear mi cuenta'} <span>↗</span></button>
-          </form>
-          {mode === 'login' && <button className="forgot-link" type="button" onClick={async () => { if (!email) { setMessage('Ingresá tu email para recuperar la contraseña.'); return; } setBusy(true); const { error } = await createClient().auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/cuenta/restablecer` }); setMessage(error ? error.message : 'Te enviamos un enlace para crear una nueva contraseña.'); setBusy(false); }}>Olvidé mi contraseña</button>}
+          </form>}
+          {mode === 'login' && <button className="forgot-link" type="button" onClick={() => { setMode('recovery'); setMessage(''); }}>Olvidé mi contraseña</button>}
           <p className="account-note">No necesitás una cuenta para recorrer la tienda.</p>
         </>}
         {message && <p className="account-message" role="status">{message}</p>}
