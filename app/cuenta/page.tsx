@@ -58,7 +58,7 @@ export default function AccountPage() {
   return <main className="account-page">
     <nav><Brand /><span><Link href="/tienda">Seguir comprando</Link></span></nav>
     <section className="account-shell">
-      <div className="account-visual" aria-hidden="true"><img src="/santorini-island-hero.png" alt="" /></div>
+      <div className="account-visual" aria-hidden="true"><img src="/santorini-island-clean.png" alt="" width="1024" height="1024" /></div>
       <div className="account-panel">
         <p className="eyebrow">CUENTA SANTORINI</p>
         {currentUser ? <AccountDashboard userId={currentUser.id} email={currentUser.email} onSignOut={signOut} /> : <>

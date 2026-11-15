@@ -22,6 +22,10 @@ import { CartProvider } from '../components/CartProvider';
 export const metadata: Metadata = {
   title: 'Santorini | Urban essentials',
   description: 'Tienda online y operación de Santorini.',
+  icons: {
+    icon: [{ url: '/santorini-island-clean.png', type: 'image/png' }],
+    shortcut: ['/santorini-island-clean.png'],
+  },
 };
 
 export const viewport: Viewport = { themeColor: '#12246B' };

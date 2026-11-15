@@ -139,7 +139,7 @@ button, a { touch-action: manipulation; }
 .home-island-motion img { display: block; width: 100%; height: auto; filter: drop-shadow(0 0 34px rgba(89,134,255,.44)); mix-blend-mode: screen; animation: island-scene-enter .9s cubic-bezier(.18,.8,.2,1) .12s both; }
 .home-page .hero { min-height: calc(100dvh - 76px); padding: clamp(90px,10vw,160px) 10vw; display: flex; flex-direction: column; justify-content: center; background: transparent; }
 .home-page .hero:before,.home-page .hero:after { display: none; }
-.home-page .instagram-contact-continuous { min-height: calc(100dvh - 76px); display: block; background: transparent; border-top: 1px solid rgba(200,168,94,.24); }
+.home-page .instagram-contact-continuous { min-height: calc(100dvh - 76px); display: block; background: linear-gradient(180deg, rgba(7,20,61,0) 0%, rgba(7,20,61,.18) 18%, rgba(7,20,61,.56) 100%); border-top: 0; }
 .home-page .instagram-contact-continuous .instagram-contact-copy { width: min(54%,780px); min-height: calc(100dvh - 76px); padding: clamp(80px,10vw,150px) 10vw; }
 .home-page .instagram-contact-continuous h2 { text-wrap: balance; }
 
@@ -175,6 +175,54 @@ button, a { touch-action: manipulation; }
   .order-detail-grid { grid-template-columns: 1fr; }
 }
 
+/* Keep the complete island visible inside the catalog canvas. */
+.catalog-banner-island { min-height: 430px; overflow: visible; }
+.catalog-banner-island img { width: min(74%, 420px); max-height: 390px; object-fit: contain; animation: catalog-island-breathe 5s ease-in-out infinite; }
+@keyframes catalog-island-breathe { 0%,100% { transform: translateY(0) rotate(-.45deg); } 50% { transform: translateY(-8px) rotate(.45deg); } }
+@media (max-width: 850px) {
+  .catalog-head { min-height: 560px; grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .catalog-banner-island { position: relative; inset: auto; width: 100%; min-height: 245px; opacity: .72; justify-self: stretch; align-self: end; }
+  .catalog-banner-island img { width: min(58vw, 360px); max-height: 270px; }
+}
+
+/* Refined brand framing: the island is scenery, never a boxed card. */
+.home-story-visual:after,
+.catalog-banner-island:after,
+.instagram-contact-art:before { display: none; }
+.home-island-motion { right: clamp(3vw, 7vw, 10vw); top: 50%; width: min(47vw, 720px, calc(100dvh - 144px)); }
+.home-island-motion img { -webkit-mask-image: radial-gradient(ellipse 68% 68% at 50% 50%, #000 40%, transparent 76%); mask-image: radial-gradient(ellipse 68% 68% at 50% 50%, #000 40%, transparent 76%); }
+.home-story-visual:before { background: radial-gradient(circle at 75% 49%, transparent 0 22%, rgba(7,20,61,.06) 47%, #07143d 89%), linear-gradient(90deg, #07143d 0 36%, transparent 72%); }
+
+.site-nav { min-height: 88px; height: 88px; padding-inline: clamp(24px, 5vw, 88px); background: rgba(255,252,246,.98); border-top: 3px solid var(--ink); border-bottom-color: #e9e2d3; }
+.site-nav > span { gap: clamp(18px, 2.1vw, 38px); font-size: 12px; letter-spacing: .12em; }
+.site-nav > span > a:not(.bag-link) { position: relative; padding: 11px 0; transition: color .22s ease; }
+.site-nav > span > a:not(.bag-link):after { content: ''; position: absolute; left: 0; right: 0; bottom: 5px; height: 1px; background: var(--gold); transform: scaleX(0); transform-origin: left; transition: transform .22s ease; }
+.site-nav > span > a:not(.bag-link):hover { color: var(--gold); }
+.site-nav > span > a:not(.bag-link):hover:after { transform: scaleX(1); }
+.site-nav .bag-link { display: inline-flex; align-items: center; gap: 10px; padding: 12px 15px; border: 1px solid var(--gold); letter-spacing: .12em; transition: background-color .22s ease, color .22s ease, border-color .22s ease; }
+.site-nav .bag-link b { display: grid; place-items: center; width: 21px; height: 21px; background: var(--ink); color: var(--paper); border-radius: 50%; font-size: 10px; }
+.site-nav .bag-link:hover { background: var(--ink); border-color: var(--ink); color: var(--paper); transform: none; }
+.site-nav .bag-link:hover b { background: var(--gold); color: var(--ink); }
+
+.catalog-head { min-height: 450px; grid-template-columns: minmax(0, .9fr) minmax(360px, .95fr); padding-block: clamp(56px, 6vw, 96px); }
+.catalog-banner-island { min-height: 430px; overflow: visible; }
+.catalog-banner-island img { width: min(84%, 520px); -webkit-mask-image: radial-gradient(ellipse 65% 65% at 50% 50%, #000 46%, transparent 77%); mask-image: radial-gradient(ellipse 65% 65% at 50% 50%, #000 46%, transparent 77%); }
+
+.account-page nav { min-height: 88px; height: 88px; padding-inline: clamp(24px, 5vw, 88px); border-top: 3px solid var(--ink); }
+.account-page nav > span { font-family: var(--font-commerce), Arial, sans-serif; font-size: 12px; letter-spacing: .12em; }
+.account-page nav a { color: var(--ink); }
+.account-page nav a:hover { color: var(--gold); }
+.account-visual img { width: min(92%, 800px); -webkit-mask-image: radial-gradient(ellipse 67% 67% at 50% 50%, #000 42%, transparent 78%); mask-image: radial-gradient(ellipse 67% 67% at 50% 50%, #000 42%, transparent 78%); }
+.login:after { background-image: url('/santorini-island-clean.png'); -webkit-mask-image: none; mask-image: none; }
+.login nav { min-height: 88px; height: 88px; padding-inline: clamp(24px, 5vw, 88px); border-top: 3px solid rgba(255,252,246,.9); }
+.login nav > span { letter-spacing: .12em; }
+@media (max-width: 850px) {
+  .home-island-motion { right: -18vw; width: min(94vw, calc(100dvh - 125px)); }
+  .catalog-head { min-height: 460px; grid-template-columns: 1fr; }
+  .catalog-banner-island { min-height: 100%; opacity: .52; }
+  .site-nav { min-height: 76px; height: 76px; padding-inline: 20px; }
+}
+
 @media (max-width: 520px) {
   .site-nav > span > a:not(.bag-link):after { display: none; }
   .bag-link { gap: 5px; }
@@ -203,7 +251,7 @@ button, a { touch-action: manipulation; }
 }
 
 /* 2026 visual refinement: integrated island, sharper controls and more breathing room. */
-.home-story-visual { inset: 0; position: absolute; top: 0; height: 100%; margin: 0; z-index: -1; }
+.home-story-visual { inset: 0 auto auto 0; width: 100%; position: absolute; top: 0; height: calc(100dvh - 88px); margin: 0; z-index: -1; }
 .home-story-visual:before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 74% 42%, transparent 0 18%, rgba(7,20,61,.08) 44%, #07143d 86%), linear-gradient(90deg, #07143d 0 34%, transparent 69%); z-index: 1; }
 .home-island-motion { right: 4vw; width: min(48vw, 780px); }
 .home-island-motion img { opacity: .98; filter: brightness(1.16) contrast(1.08) drop-shadow(0 0 42px rgba(72,130,255,.55)); -webkit-mask-image: radial-gradient(ellipse 63% 63% at 50% 50%, #000 43%, transparent 74%); mask-image: radial-gradient(ellipse 63% 63% at 50% 50%, #000 43%, transparent 74%); }
@@ -239,4 +287,14 @@ button, a { touch-action: manipulation; }
   .catalog-head { min-height: 500px; grid-template-columns: 1fr; padding: 62px 24px 34px; }
   .catalog-banner-island { position: absolute; inset: 0 -16vw 0 auto; width: 70vw; opacity: .55; }
   .catalog-copy { max-width: 85%; }
+}
+
+/* Final catalog composition: do not reuse the hero transform on this image. */
+.catalog-banner-island { min-height: 430px; overflow: visible; }
+.catalog-banner-island img { width: min(74%, 420px); max-height: 390px; object-fit: contain; animation: catalog-island-breathe 5s ease-in-out infinite; }
+@keyframes catalog-island-breathe { 0%,100% { transform: translateY(0) rotate(-.45deg); } 50% { transform: translateY(-8px) rotate(.45deg); } }
+@media (max-width: 850px) {
+  .catalog-head { min-height: 560px; grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .catalog-banner-island { position: relative; inset: auto; width: 100%; min-height: 245px; opacity: .72; justify-self: stretch; align-self: end; }
+  .catalog-banner-island img { width: min(58vw, 360px); max-height: 270px; }
 }
