@@ -185,6 +185,113 @@ button, a { touch-action: manipulation; }
   .catalog-banner-island img { width: min(58vw, 360px); max-height: 270px; }
 }
 
+/* Operational feedback: the quantity moves like a physical counter. */
+.stock-control {
+  gap: 9px;
+}
+.rolling-stock {
+  position: relative;
+  display: inline-grid;
+  min-width: 32px;
+  height: 32px;
+  place-items: center;
+  overflow: hidden;
+  border-block: 1px solid rgba(18,36,107,.18);
+  color: var(--ink);
+  font-family: var(--font-commerce), Arial, sans-serif;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  line-height: 1;
+}
+.rolling-stock span {
+  display: block;
+  animation: stock-roll .34s cubic-bezier(.2,.78,.24,1) both;
+}
+@keyframes stock-roll {
+  from { opacity: 0; transform: translateY(115%); }
+  58% { opacity: 1; transform: translateY(-10%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Product media accepts the same focused drop interaction for photos and guides. */
+.image-dropzone,
+.guide-dropzone {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px dashed rgba(18,36,107,.48);
+  border-radius: 0;
+  background: linear-gradient(135deg, #fffdf8, #f4eddd);
+  transition: border-color .22s ease, background-color .22s ease, box-shadow .22s ease, transform .22s ease;
+}
+.image-dropzone::before,
+.guide-dropzone::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(200,168,94,.28), rgba(18,36,107,.09));
+  opacity: 0;
+  transform: translateY(18%);
+  transition: opacity .24s ease, transform .24s ease;
+}
+.image-dropzone:is(:hover, .dragging),
+.guide-dropzone:is(:hover, .dragging) {
+  border-color: var(--gold);
+  background: #fffaf0;
+  box-shadow: 0 12px 24px rgba(18,36,107,.10), inset 0 0 0 1px var(--gold);
+  transform: translateY(-2px);
+}
+.image-dropzone:is(:hover, .dragging)::before,
+.guide-dropzone:is(:hover, .dragging)::before {
+  opacity: 1;
+  transform: translateY(0);
+}
+.image-dropzone .image-drop-icon,
+.guide-dropzone .image-drop-icon {
+  border-color: var(--gold);
+  border-radius: 0;
+  color: var(--ink);
+  transition: background-color .22s ease, color .22s ease, transform .22s ease;
+}
+.image-dropzone:is(:hover, .dragging) .image-drop-icon,
+.guide-dropzone:is(:hover, .dragging) .image-drop-icon {
+  background: var(--ink);
+  color: var(--paper);
+  transform: translateY(-3px);
+}
+.image-dropzone.dragging strong,
+.guide-dropzone.dragging strong { color: var(--ink); }
+
+/* The source image is treated as island texture; the readable mark is separate. */
+.home-island-motion::before {
+  top: 80%;
+  bottom: auto;
+  height: 20%;
+  background: linear-gradient(180deg, rgba(7,20,61,.78), #07143d 42%);
+}
+.home-island-motion img {
+  clip-path: inset(0 0 20% 0);
+}
+.home-island-word {
+  bottom: 7%;
+  opacity: 1;
+}
+.home-story::after {
+  background: radial-gradient(ellipse 70% 85% at 72% 20%, #102e7d 0%, #0b205c 34%, #07143d 74%, #07143d 100%);
+}
+.home-page .instagram-contact-continuous::before {
+  inset: -220px 0 auto;
+  height: 440px;
+  background: linear-gradient(180deg, rgba(7,20,61,0), rgba(7,20,61,.38) 55%, #07143d 100%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .rolling-stock span { animation: none; }
+  .image-dropzone,
+  .guide-dropzone { transition: none; }
+}
+
 /* Home and account: one uninterrupted night scene, with the mark kept legible. */
 .home-story {
   background: #07143d;
