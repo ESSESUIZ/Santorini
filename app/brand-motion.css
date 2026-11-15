@@ -522,3 +522,40 @@ button, a { touch-action: manipulation; }
   .catalog-banner-island { position: relative; inset: auto; width: 100%; min-height: 245px; opacity: .72; justify-self: stretch; align-self: end; }
   .catalog-banner-island img { width: min(58vw, 360px); max-height: 270px; }
 }
+
+/* Final home scene: same clean island and one continuous Santorini night. */
+.home-story,
+.home-page .instagram-contact-continuous,
+.home-page .instagram-contact-continuous .instagram-contact-copy {
+  background: #07143d !important;
+}
+.home-story::after { background: #07143d; }
+.home-story-visual::before {
+  background: radial-gradient(ellipse 48% 58% at 76% 43%, rgba(35,75,177,.48) 0%, rgba(18,36,107,.18) 42%, transparent 76%), linear-gradient(90deg, #07143d 0%, rgba(7,20,61,.86) 31%, transparent 73%);
+}
+.home-island-motion {
+  width: min(45vw, 660px, calc(100dvh - 180px));
+  animation: home-island-drift 6.5s cubic-bezier(.42,0,.24,1) infinite;
+}
+.home-island-motion::before { display: none; }
+.home-island-motion img {
+  clip-path: none;
+  -webkit-mask-image: none;
+  mask-image: none;
+  mix-blend-mode: normal;
+  opacity: .98;
+  filter: drop-shadow(0 0 42px rgba(69,132,255,.64));
+  animation: island-scene-enter .85s cubic-bezier(.18,.8,.2,1) .12s both;
+}
+.home-island-word { bottom: 5%; }
+@keyframes home-island-drift {
+  0%, 100% { transform: translateY(-50%) rotate(-1deg) scale(1); }
+  48% { transform: translateY(calc(-50% - 14px)) rotate(.9deg) scale(1.018); }
+  72% { transform: translateY(calc(-50% - 8px)) rotate(.2deg) scale(1.006); }
+}
+@media (max-width: 850px) {
+  .home-island-motion { width: min(90vw, 590px); right: -10vw; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-island-motion { animation: none; }
+}
