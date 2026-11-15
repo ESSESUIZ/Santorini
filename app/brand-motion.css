@@ -215,7 +215,7 @@ button, a { touch-action: manipulation; }
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(90deg, rgba(5,16,51,.22), transparent 55%), radial-gradient(ellipse 55% 88% at 78% 52%, transparent 0 47%, rgba(218,185,104,.40) 47.2% 47.55%, transparent 47.8%);
+  background: linear-gradient(90deg, rgba(5,16,51,.22), transparent 55%);
 }
 .catalog-copy { z-index: 2; }
 .catalog-head .catalog-copy .eyebrow { margin-bottom: 22px; color: #eadcae; }
