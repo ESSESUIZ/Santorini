@@ -185,6 +185,123 @@ button, a { touch-action: manipulation; }
   .catalog-banner-island img { width: min(58vw, 360px); max-height: 270px; }
 }
 
+/* Home and account: one uninterrupted night scene, with the mark kept legible. */
+.home-story {
+  background: #07143d;
+}
+.home-story:after {
+  background: #07143d;
+}
+.home-page .instagram-contact-continuous {
+  position: relative;
+  background: transparent !important;
+  border: 0;
+}
+.home-page .instagram-contact-continuous::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -150px 0 auto;
+  height: 310px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(7,20,61,0), rgba(10,29,87,.18) 52%, rgba(7,20,61,.02));
+}
+.home-page .instagram-contact-continuous .instagram-contact-copy {
+  background: transparent;
+}
+.home-island-motion {
+  isolation: isolate;
+}
+.home-island-motion::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 28%;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(7,20,61,0), rgba(7,20,61,.92) 48%, #07143d 100%);
+}
+.home-island-motion img {
+  -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 45%, #000 46%, transparent 82%);
+  mask-image: radial-gradient(ellipse 70% 70% at 50% 45%, #000 46%, transparent 82%);
+}
+.home-island-word {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 8%;
+  transform: translateX(-50%);
+  color: #f0dfaa;
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(.86rem, 1.75vw, 1.55rem);
+  font-weight: 500;
+  letter-spacing: .52em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-shadow: 0 2px 20px rgba(0,0,0,.78);
+}
+.account-page nav > span > a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0 1px;
+  color: var(--ink);
+  transition: color .22s ease;
+}
+.account-page nav > span > a::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 7px;
+  left: 0;
+  height: 1px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .22s ease;
+}
+.account-page nav > span > a:hover { color: var(--gold); }
+.account-page nav > span > a:hover::after { transform: scaleX(1); }
+.account-page nav > span > a:focus-visible { outline: 2px solid var(--gold); outline-offset: 5px; }
+.account-visual {
+  background: radial-gradient(circle at 51% 45%, rgba(46,85,183,.88) 0%, rgba(18,36,107,.72) 28%, transparent 57%), linear-gradient(145deg, #07143d, #12246b);
+}
+.account-visual .account-island {
+  width: min(76%, 620px);
+  max-height: min(78vh, 690px);
+  object-fit: contain;
+  opacity: .96;
+  filter: drop-shadow(0 0 46px rgba(74,133,255,.56));
+  -webkit-mask-image: radial-gradient(ellipse 73% 73% at 50% 48%, #000 47%, transparent 82%);
+  mask-image: radial-gradient(ellipse 73% 73% at 50% 48%, #000 47%, transparent 82%);
+}
+.account-brand-signature {
+  position: absolute;
+  z-index: 2;
+  bottom: clamp(42px, 8vh, 90px);
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--gold-light);
+  font-family: var(--font-editorial), Georgia, serif;
+  font-size: clamp(1.15rem, 2.1vw, 2rem);
+  font-weight: 500;
+  letter-spacing: .5em;
+  line-height: 1;
+  text-transform: uppercase;
+  text-shadow: 0 2px 22px rgba(0,0,0,.75);
+  white-space: nowrap;
+}
+@media (max-width: 850px) {
+  .home-page .instagram-contact-continuous .instagram-contact-copy { background: transparent; }
+  .home-island-word { bottom: 12%; font-size: .8rem; letter-spacing: .38em; }
+  .account-visual .account-island { width: min(94%, 590px); }
+  .account-brand-signature { bottom: 52px; }
+}
+
 /* Refined brand framing: the island is scenery, never a boxed card. */
 .home-story-visual:after,
 .catalog-banner-island:after,
