@@ -10,7 +10,7 @@ export function InstagramContact({ continuous = false }: { continuous?: boolean 
       <a className="instagram-handle" href="https://www.instagram.com/santorini_oficial1/" target="_blank" rel="noreferrer">@santorini_oficial1</a>
     </div>
     {!continuous && <div className="instagram-contact-art" aria-hidden="true">
-      <img src="/santorini-island-hero.png" alt="" width="720" height="720" loading="lazy" decoding="async" />
+      <img src="/santorini-island-clean.png" alt="" width="1024" height="1024" loading="lazy" decoding="async" />
     </div>}
   </section>;
 }
