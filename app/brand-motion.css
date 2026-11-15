@@ -185,6 +185,78 @@ button, a { touch-action: manipulation; }
   .catalog-banner-island img { width: min(58vw, 360px); max-height: 270px; }
 }
 
+/* Store banner and category badges follow the Santorini retail lockup. */
+.product-image > span {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 13px;
+  border-radius: 999px;
+  background: #12246b;
+  color: #fffcf6;
+  font-family: var(--font-commerce), Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  box-shadow: 0 5px 14px rgba(18,36,107,.18);
+}
+.catalog-head {
+  min-height: 312px;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, .92fr);
+  padding: clamp(42px, 5vw, 70px) 6.5vw;
+  overflow: hidden;
+  border-radius: 0 0 52px 0;
+  background: radial-gradient(ellipse 34% 82% at 76% 50%, rgba(24,66,165,.52) 0%, transparent 72%), linear-gradient(112deg, #061338 0%, #081943 53%, #0b2362 100%);
+}
+.catalog-head::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(5,16,51,.22), transparent 55%), radial-gradient(ellipse 55% 88% at 78% 52%, transparent 0 47%, rgba(218,185,104,.40) 47.2% 47.55%, transparent 47.8%);
+}
+.catalog-copy { z-index: 2; }
+.catalog-head .catalog-copy .eyebrow { margin-bottom: 22px; color: #eadcae; }
+.catalog-head h1 {
+  max-width: 680px;
+  color: #fffcf6;
+  font-size: clamp(3rem, 5.8vw, 6.2rem);
+  font-style: italic;
+  letter-spacing: -.055em;
+  text-shadow: 0 12px 34px rgba(0,0,0,.28);
+}
+.catalog-banner-island {
+  z-index: 1;
+  min-height: 310px;
+  overflow: hidden;
+  opacity: 1;
+}
+.catalog-banner-island img {
+  width: min(112%, 560px);
+  max-height: none;
+  object-fit: cover;
+  object-position: 50% 18%;
+  clip-path: inset(0 0 18% 0);
+  mix-blend-mode: screen;
+  filter: brightness(1.16) contrast(1.08) drop-shadow(0 0 30px rgba(79,139,255,.54));
+  animation: catalog-island-drift 6.2s ease-in-out infinite;
+}
+@keyframes catalog-island-drift {
+  0%, 100% { transform: translateY(2px) scale(1.08); }
+  50% { transform: translateY(-8px) scale(1.105); }
+}
+@media (max-width: 850px) {
+  .catalog-head { min-height: 480px; grid-template-columns: 1fr; padding: 60px 24px 38px; border-radius: 0 0 38px 0; }
+  .catalog-banner-island { position: absolute; inset: 0 -9vw 0 auto; width: 70vw; min-height: 0; opacity: .5; }
+  .catalog-banner-island img { width: 100%; max-height: none; }
+  .catalog-head::after { background: linear-gradient(90deg, rgba(6,19,56,.86), rgba(6,19,56,.22)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .catalog-banner-island img { animation: none; }
+}
+
 /* Operational feedback: the quantity moves like a physical counter. */
 .stock-control {
   gap: 9px;
@@ -559,3 +631,33 @@ button, a { touch-action: manipulation; }
 @media (prefers-reduced-motion: reduce) {
   .home-island-motion { animation: none; }
 }
+
+/* Storefront hero, kept last to preserve the reference composition. */
+.catalog-head {
+  min-height: 312px;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, .92fr);
+  padding: clamp(42px, 5vw, 70px) 6.5vw;
+  overflow: hidden;
+  border-radius: 0 0 52px 0;
+  background: radial-gradient(ellipse 34% 82% at 76% 50%, rgba(24,66,165,.52) 0%, transparent 72%), linear-gradient(112deg, #061338 0%, #081943 53%, #0b2362 100%);
+}
+.catalog-head::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(5,16,51,.22), transparent 55%), radial-gradient(ellipse 55% 88% at 78% 52%, transparent 0 47%, rgba(218,185,104,.40) 47.2% 47.55%, transparent 47.8%);
+}
+.catalog-copy { z-index: 2; }
+.catalog-head .catalog-copy .eyebrow { margin-bottom: 22px; color: #eadcae; }
+.catalog-head h1 { max-width: 680px; color: #fffcf6; font-size: clamp(3rem, 5.8vw, 6.2rem); font-style: italic; letter-spacing: -.055em; text-shadow: 0 12px 34px rgba(0,0,0,.28); }
+.catalog-banner-island { z-index: 1; min-height: 310px; overflow: hidden; opacity: 1; }
+.catalog-banner-island img { width: min(112%, 560px); max-height: none; object-fit: cover; object-position: 50% 18%; clip-path: inset(0 0 18% 0); mix-blend-mode: screen; filter: brightness(1.16) contrast(1.08) drop-shadow(0 0 30px rgba(79,139,255,.54)); animation: catalog-island-drift 6.2s ease-in-out infinite; }
+@keyframes catalog-island-drift { 0%,100% { transform: translateY(2px) scale(1.08); } 50% { transform: translateY(-8px) scale(1.105); } }
+@media (max-width: 850px) {
+  .catalog-head { min-height: 480px; grid-template-columns: 1fr; padding: 60px 24px 38px; border-radius: 0 0 38px 0; }
+  .catalog-banner-island { position: absolute; inset: 0 -9vw 0 auto; width: 70vw; min-height: 0; opacity: .5; }
+  .catalog-banner-island img { width: 100%; max-height: none; }
+  .catalog-head::after { background: linear-gradient(90deg, rgba(6,19,56,.86), rgba(6,19,56,.22)); }
+}
+@media (prefers-reduced-motion: reduce) { .catalog-banner-island img { animation: none; } }
