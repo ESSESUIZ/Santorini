@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { SiteNav } from '../../components/SiteNav';
 import { InstagramContact } from '../../components/InstagramContact';
+import { TiltIsland } from '../../components/TiltIsland';
 import { money, Product } from '../../lib/catalog';
 
 export default function ShopClient({ initialProducts }: { initialProducts: Product[] }) {
@@ -31,7 +32,7 @@ export default function ShopClient({ initialProducts }: { initialProducts: Produ
     }), [category, groups, query, size, sort]);
   return <main className="storefront">
     <SiteNav />
-    <header className="catalog-head"><div className="catalog-copy"><p className="eyebrow">CATÁLOGO · DROP 01</p><h1>Lo esencial,<br />sin ruido.</h1></div><div className="catalog-banner-island" aria-hidden="true"><img src="/santorini-island-clean.png" alt="" width="1024" height="1024" loading="eager" decoding="async" /></div></header>
+    <header className="catalog-head"><div className="catalog-copy"><p className="eyebrow">CATÁLOGO · DROP 01</p><h1>Lo esencial,<br />sin ruido.</h1></div><div className="catalog-banner-island"><TiltIsland /></div></header>
     <div className="catalog-controls"><div className="catalog-filter-stack"><label className="catalog-search"><span>Buscar</span><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Prenda, color o talle" aria-label="Buscar productos" /></label><div className="filters" aria-label="Filtrar categoría">{categories.map((item) => <button className={category === item ? 'selected' : ''} onClick={() => setCategory(item)} key={item}>{item}</button>)}</div></div><div className="catalog-selects"><label>Talle<select value={size} onChange={(event) => setSize(event.target.value)}><option value="Todos">Todos</option>{sizes.map((item) => <option key={item} value={item}>{item}</option>)}</select></label><label>Ordenar<select value={sort} onChange={(event) => setSort(event.target.value as typeof sort)}><option value="featured">Recomendados</option><option value="price-desc">Mayor precio</option><option value="price-asc">Menor precio</option><option value="size">Por talle</option></select></label></div></div>
     <section className="products">{visible.map((variants, index) => { const product = variants[0]; const inStock = variants.filter((item) => item.stock > 0); return <article className="product" key={`${product.category}-${product.name}-${product.color}`}>
       <Link href={`/producto/${product.id}`} className={`product-image tone-${index % 4}${product.imageUrl ? ' has-photo' : ''}`}><span>{product.category}</span><img src={product.imageUrl ?? '/santorini-mark.png'} alt={product.imageUrl ? `${product.name} en color ${product.color}` : ''} width="900" height="1125" loading="lazy" decoding="async" /><b>{product.name.split(' ').slice(0, 3).join(' ')}</b></Link>

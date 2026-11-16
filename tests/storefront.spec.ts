@@ -7,7 +7,11 @@ test('la portada ofrece tienda y acceso de clientes', async ({ page }) => {
   await expect(page.locator('body')).not.toContainText('Operación clara');
   await expect(page.getByRole('heading', { name: /buscás una pieza especial/i })).toBeVisible();
   await expect(page.getByRole('link', { name: /escribir por instagram/i })).toHaveAttribute('href', 'https://ig.me/m/santorini_oficial1');
-  await expect(page.locator('.home-story img[src="/santorini-island-hero.png"]')).toHaveCount(1);
+  const carousel = page.getByRole('region', { name: /campañas destacadas/i });
+  await expect(carousel).toBeVisible();
+  await carousel.getByRole('button', { name: /diapositiva 1/i }).click();
+  await expect(carousel.locator('img[src*="santorini-island-clean"]')).toHaveCount(1);
+  await expect(carousel.getByRole('button', { name: /ir a la diapositiva/i })).toHaveCount(3);
 });
 
 test('el carrito respeta el stock real de la variante', async ({ page }) => {

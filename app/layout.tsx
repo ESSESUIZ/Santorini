@@ -17,6 +17,7 @@ import './product.css';
 import './checkout.css';
 import './polish.css';
 import './brand-motion.css';
+import './home-carousel.css';
 import { CartProvider } from '../components/CartProvider';
 
 export const metadata: Metadata = {
